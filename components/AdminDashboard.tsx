@@ -7,11 +7,13 @@ const ADMIN_PASSWORD = 'IGANDO_ADMIN_2025';
 const AdminDashboard: React.FC = () => {
   const [attendees, setAttendees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   
   // Advanced Filters
   const [filterSex, setFilterSex] = useState<string>('All');
@@ -35,10 +37,12 @@ const AdminDashboard: React.FC = () => {
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setAttendees(data);
+        setLastUpdated(new Date());
         setLoading(false);
       }, (error) => {
         console.error("Firestore error:", error);
         setLoading(false);
+        showToast("Database connection error", "error");
       });
       return () => unsubscribe();
     }
@@ -55,7 +59,6 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Real-time Summary Stats
   const stats = useMemo(() => {
     return {
       total: attendees.length,
@@ -81,244 +84,295 @@ const AdminDashboard: React.FC = () => {
     });
   }, [attendees, searchQuery, filterSex, filterAge, filterCategory, filterLocation]);
 
-  const downloadCSV = () => {
+  /**
+   * Enhanced CSV Export Logic
+   */
+  const downloadCSV = async () => {
+    if (loading || exporting) return;
     if (filteredAttendees.length === 0) {
-      showToast("No data to export", "error");
+      showToast("No records found to export", "error");
       return;
     }
 
-    const escapeCsv = (val: any) => {
-      if (val === undefined || val === null) return '""';
-      const str = String(val).replace(/"/g, '""');
-      return `"${str}"`;
-    };
+    setExporting(true);
 
-    const headers = [
-      'First Name', 'Last Name', 'Email Address', 'Phone Number', 
-      'Sex', 'Age Range', 'Category', 'Location', 'Date Registered'
-    ];
+    try {
+      // Helper to escape values for CSV
+      const escapeCsv = (val: any) => {
+        if (val === undefined || val === null) return '""';
+        const str = String(val).replace(/"/g, '""').replace(/\n/g, ' ');
+        return `"${str}"`;
+      };
 
-    const rows = filteredAttendees.map(a => [
-      escapeCsv(a.firstName),
-      escapeCsv(a.lastName),
-      escapeCsv(a.email),
-      escapeCsv(a.phone),
-      escapeCsv(a.sex),
-      escapeCsv(a.ageRange),
-      escapeCsv(a.category),
-      escapeCsv(a.location),
-      escapeCsv(a.createdAt?.toDate ? a.createdAt.toDate().toLocaleString() : 'N/A')
-    ]);
-    
-    const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `tcn_igando_attendance_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-    showToast(`Exported ${filteredAttendees.length} records`);
+      // Define columns mapping for consistency
+      const columns = [
+        { label: 'First Name', key: 'firstName' },
+        { label: 'Last Name', key: 'lastName' },
+        { label: 'Email', key: 'email' },
+        { label: 'Phone', key: 'phone' },
+        { label: 'Sex', key: 'sex' },
+        { label: 'Age Range', key: 'ageRange' },
+        { label: 'Category', key: 'category' },
+        { label: 'Location', key: 'location' },
+        { label: 'Reg Date', key: 'date' },
+        { label: 'Reg Time', key: 'time' },
+      ];
+
+      const csvRows: string[] = [];
+      
+      // 1. Headers
+      csvRows.push(columns.map(col => escapeCsv(col.label)).join(','));
+
+      // 2. Data Rows
+      filteredAttendees.forEach(a => {
+        const dateObj = a.createdAt?.toDate ? a.createdAt.toDate() : null;
+        
+        const rowData = {
+          firstName: a.firstName,
+          lastName: a.lastName,
+          email: a.email,
+          phone: a.phone, // Adding a space or ' can prevent scientific notation in Excel
+          sex: a.sex,
+          ageRange: a.ageRange,
+          category: a.category,
+          location: a.location,
+          date: dateObj ? dateObj.toLocaleDateString('en-GB') : 'N/A',
+          time: dateObj ? dateObj.toLocaleTimeString('en-GB') : 'N/A',
+        };
+
+        const row = columns.map(col => escapeCsv(rowData[col.key as keyof typeof rowData]));
+        csvRows.push(row.join(','));
+      });
+
+      // 3. Assemble and Download
+      const csvString = '\uFEFF' + csvRows.join('\n'); // UTF-8 BOM for Excel
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '_');
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `TCN_Igando_Registry_${timestamp}.csv`);
+      link.style.display = 'none';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      showToast(`Exported ${filteredAttendees.length} attendees successfully`);
+    } catch (err) {
+      console.error("Export Error:", err);
+      showToast("Failed to generate export file", "error");
+    } finally {
+      setExporting(false);
+    }
   };
 
-  const StatCard = ({ title, count, colorClass, icon }: { title: string, count: number, colorClass: string, icon: string }) => (
-    <div className={`bg-white p-6 rounded-[2rem] shadow-xl border-l-8 ${colorClass} transition-transform hover:scale-[1.02] duration-300`}>
-      <div className="flex justify-between items-start">
+  const StatCard = ({ title, count, colorClass, icon, bgGradient }: { title: string, count: number, colorClass: string, icon: string, bgGradient: string }) => (
+    <div className={`relative bg-white p-4 md:p-6 rounded-[0.6em] md:rounded-[2.5rem] shadow-xl overflow-hidden group transition-all hover:-translate-y-1 hover:shadow-2xl`}>
+      <div className={`absolute top-0 right-0 w-24 md:w-32 h-24 md:h-32 -mr-6 md:-mr-8 -mt-6 md:-mt-8 rounded-full blur-2xl md:blur-3xl opacity-10 ${bgGradient}`}></div>
+      <div className="flex justify-between items-start relative z-10">
         <div>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-          <h3 className="text-4xl font-black text-slate-800">{count.toLocaleString()}</h3>
+          <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] md:tracking-[0.2em] mb-1">{title}</p>
+          <h3 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight">{count.toLocaleString()}</h3>
         </div>
-        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-slate-50 text-slate-400 shadow-inner`}>
-          <i className={`fa-solid ${icon} text-lg`}></i>
+        <div className={`w-10 h-10 md:w-14 md:h-14 rounded-lg md:rounded-2xl flex items-center justify-center bg-slate-50 text-slate-400 shadow-inner group-hover:bg-white group-hover:scale-110 transition-transform duration-500`}>
+          <i className={`fa-solid ${icon} text-sm md:text-xl ${colorClass}`}></i>
         </div>
       </div>
+      <div className={`mt-3 md:mt-4 h-0.5 md:h-1 w-8 md:w-12 rounded-full ${bgGradient.split(' ')[0]}`}></div>
     </div>
   );
 
   if (!isAuthenticated) {
     return (
-      <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-10 text-center relative overflow-hidden border border-white/60">
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-[#5C6BC0]"></div>
-        <div className="w-20 h-20 bg-indigo-50 text-[#5C6BC0] rounded-2xl flex items-center justify-center mx-auto mb-8 rotate-3 shadow-lg">
-          <i className="fa-solid fa-shield-halved text-3xl"></i>
+      <div className="w-[96%] md:w-full max-w-md bg-white rounded-[0.6em] md:rounded-[3rem] shadow-2xl p-6 md:p-10 text-center relative overflow-hidden border border-white/60 mx-auto mt-12 md:mt-20">
+        <div className="absolute top-0 left-0 w-full h-1.5 md:h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+        <div className="w-16 h-16 md:w-24 md:h-24 bg-indigo-50 text-indigo-600 rounded-[0.6em] md:rounded-[2rem] flex items-center justify-center mx-auto mb-6 md:mb-8 rotate-6 shadow-xl border-4 border-white">
+          <i className="fa-solid fa-vault text-2xl md:text-4xl"></i>
         </div>
-        <h2 className="text-2xl font-black text-slate-800 mb-8 tracking-tight">Admin Terminal</h2>
+        <h2 className="text-xl md:text-3xl font-black text-slate-800 mb-1 md:mb-2 tracking-tighter">Command Center</h2>
+        <p className="text-slate-400 font-medium mb-6 md:mb-10 text-xs md:text-sm">Enter the system clearance password</p>
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
-              placeholder="System Password"
-              className={`w-full px-6 py-4 rounded-2xl bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 font-bold text-center tracking-widest ${authError ? 'ring-2 ring-red-400' : ''}`}
+              placeholder="••••••••"
+              className={`w-full px-4 md:px-8 py-4 md:py-5 rounded-xl md:rounded-2xl bg-slate-50 text-slate-700 outline-none focus:ring-4 focus:ring-indigo-100 font-black text-center tracking-[0.3em] md:tracking-[0.5em] text-lg md:text-xl transition-all ${authError ? 'ring-4 ring-red-100 border-red-200' : 'border-slate-100'}`}
             />
             <button 
               type="button" 
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-indigo-500 transition-colors"
+              className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-indigo-500 transition-colors"
             >
               <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
             </button>
           </div>
-          <button type="submit" className="w-full py-5 bg-[#5C6BC0] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-100 transition-all hover:bg-[#4E5BA6] active:scale-95">Verify Identity</button>
+          <button type="submit" className="w-full py-4 md:py-5 bg-[#5C6BC0] text-white rounded-xl md:rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-100 transition-all hover:bg-indigo-700 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 text-xs md:text-base">
+            <i className="fa-solid fa-fingerprint text-lg md:text-xl"></i> Verify Identity
+          </button>
         </form>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-full lg:max-w-7xl relative px-4 pb-12">
+    <div className="w-[96%] md:w-full max-w-7xl relative px-2 md:px-4 pb-20 mx-auto">
       {toast && (
-        <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[110] px-6 py-4 bg-white rounded-2xl shadow-2xl border border-indigo-50 flex items-center gap-4 animate-bounce-in">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${toast.type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-            <i className={`fa-solid ${toast.type === 'success' ? 'fa-check' : 'fa-xmark'}`}></i>
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[110] px-4 md:px-8 py-3 md:py-4 bg-white/90 backdrop-blur-md rounded-2xl md:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white flex items-center gap-3 md:gap-4 animate-bounce-in">
+          <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-lg ${toast.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+            <i className={`fa-solid ${toast.type === 'success' ? 'fa-check' : 'fa-xmark'} text-base md:text-lg`}></i>
           </div>
-          <span className="text-sm font-black text-slate-700">{toast.message}</span>
+          <span className="text-[10px] md:text-sm font-black text-slate-800 uppercase tracking-widest">{toast.message}</span>
         </div>
       )}
 
-      {/* Summary Stats Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard title="Total Attendance" count={stats.total} colorClass="border-indigo-500" icon="fa-users-line" />
-        <StatCard title="First-Time Guests" count={stats.guests} colorClass="border-orange-500" icon="fa-star" />
-        <StatCard title="Returning Souls" count={stats.returning} colorClass="border-purple-500" icon="fa-rotate-left" />
-        <StatCard title="Total Members" count={stats.members} colorClass="border-emerald-500" icon="fa-id-card-clip" />
+      {/* Header Area */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-6 mb-8 md:mb-10">
+        <div>
+          <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
+            <span className="px-2 md:px-3 py-0.5 md:py-1 bg-indigo-100 text-indigo-600 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest animate-pulse whitespace-nowrap">Live Feed</span>
+            <p className="text-slate-400 text-[9px] md:text-xs font-bold">Synced: {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+          </div>
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter">Admin <span className="text-indigo-600">Area</span></h2>
+        </div>
+        <button 
+          onClick={downloadCSV} 
+          disabled={exporting}
+          className={`group relative w-full md:w-auto px-6 md:px-10 py-4 md:py-5 text-white rounded-[0.6em] md:rounded-[2rem] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-2 md:gap-3 overflow-hidden text-[10px] md:text-base ${
+            exporting ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-indigo-600'
+          }`}
+        >
+           <span className="relative z-10 flex items-center gap-2 md:gap-3">
+             <i className={`fa-solid ${exporting ? 'fa-circle-notch animate-spin' : 'fa-cloud-arrow-down'} text-base md:text-xl`}></i> 
+             {exporting ? 'Generating...' : 'Export Attendees'}
+           </span>
+           <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        </button>
       </div>
 
-      <div className="bg-white rounded-[2.5rem] shadow-2xl p-6 lg:p-10 border border-white/60 animate-fade-in">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
-          <div>
-            <h2 className="text-4xl lg:text-5xl font-black text-slate-800 tracking-tighter">Attendance Registry</h2>
-            <p className="text-slate-400 font-medium mt-2">Managing check-ins for Crossover to Abundance 2026</p>
-          </div>
-          <button 
-            onClick={downloadCSV} 
-            className="w-full lg:w-auto px-8 py-5 bg-[#5C6BC0] text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 hover:bg-[#4E5BA6] transition-all"
-          >
-             <i className="fa-solid fa-file-csv text-xl"></i> Export CSV
-          </button>
-        </div>
+      {/* Summary Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-12">
+        <StatCard title="Total Registry" count={stats.total} colorClass="text-indigo-500" icon="fa-chart-pie" bgGradient="bg-indigo-500" />
+        <StatCard title="First-Time Guests" count={stats.guests} colorClass="text-orange-500" icon="fa-fire" bgGradient="bg-orange-500" />
+        <StatCard title="Returning Members" count={stats.returning} colorClass="text-purple-500" icon="fa-heart" bgGradient="bg-purple-500" />
+        <StatCard title="Active Members" count={stats.members} colorClass="text-emerald-500" icon="fa-id-badge" bgGradient="bg-emerald-500" />
+      </div>
 
-        {/* Search & Filters */}
-        <div className="space-y-4 mb-8">
-          <div className="relative group">
-             <i className="fa-solid fa-magnifying-glass absolute left-8 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors"></i>
-             <input 
-                type="text" 
-                placeholder="Search by name, email, or mobile..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-16 pr-8 py-6 rounded-3xl bg-slate-50 border-none outline-none font-bold text-slate-700 placeholder:text-slate-300 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all text-lg shadow-inner"
-             />
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-             <select 
-               value={filterSex} 
-               onChange={(e) => setFilterSex(e.target.value)}
-               className="p-4 rounded-2xl bg-slate-50 border-none outline-none font-bold text-slate-600 text-sm appearance-none cursor-pointer hover:bg-slate-100 transition-colors"
-             >
-               <option value="All">All Sex</option>
-               <option value="Male">Male</option>
-               <option value="Female">Female</option>
-             </select>
-
-             <select 
-               value={filterAge} 
-               onChange={(e) => setFilterAge(e.target.value)}
-               className="p-4 rounded-2xl bg-slate-50 border-none outline-none font-bold text-slate-600 text-sm appearance-none cursor-pointer hover:bg-slate-100 transition-colors"
-             >
-               <option value="All">All Ages</option>
-               <option value="under 19">under 19</option>
-               <option value="19-26">19-26</option>
-               <option value="27-36">27-36</option>
-               <option value="37-45">37-45</option>
-               <option value="46-55">46-55</option>
-               <option value="55 and above">55 and above</option>
-             </select>
-
-             <select 
-               value={filterCategory} 
-               onChange={(e) => setFilterCategory(e.target.value)}
-               className="p-4 rounded-2xl bg-slate-50 border-none outline-none font-bold text-slate-600 text-sm appearance-none cursor-pointer hover:bg-slate-100 transition-colors"
-             >
-               <option value="All">All Categories</option>
-               <option value="First Timer/Guest">First Timer/Guest</option>
-               <option value="Revisiting/Returning Member">Returning</option>
-               <option value="Member">Member</option>
-             </select>
-
-             <select 
-               value={filterLocation} 
-               onChange={(e) => setFilterLocation(e.target.value)}
-               className="p-4 rounded-2xl bg-slate-50 border-none outline-none font-bold text-slate-600 text-sm appearance-none cursor-pointer hover:bg-slate-100 transition-colors"
-             >
-               <option value="All">All Locations</option>
-               <option value="Egbeda/Akowonjo">Egbeda/Akowonjo</option>
-               <option value="Iyana-Ipaja">Iyana-Ipaja</option>
-               <option value="Ikotun">Ikotun</option>
-               <option value="Igando">Igando</option>
-               <option value="Ijegun">Ijegun</option>
-               <option value="Oke-Odo">Oke-Odo</option>
-               <option value="Ayobo & Ipaja">Ayobo & Ipaja</option>
-             </select>
+      <div className="bg-white/70 backdrop-blur-xl rounded-[0.6em] md:rounded-[3rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] p-4 md:p-12 border border-white relative overflow-hidden">
+        {/* Search & Filter Toolbar */}
+        <div className="space-y-4 md:space-y-6 mb-8 md:mb-12">
+          <div className="flex flex-col lg:flex-row gap-3 md:gap-4">
+            <div className="flex-1 relative group">
+               <i className="fa-solid fa-magnifying-glass absolute left-6 md:left-8 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors text-base md:text-xl"></i>
+               <input 
+                  type="text" 
+                  placeholder="Quick search..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 md:pl-16 pr-6 md:pr-8 py-4 md:py-6 rounded-[0.6em] md:rounded-[2rem] bg-slate-100/50 border-2 border-transparent outline-none font-bold text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50 transition-all text-base md:text-xl shadow-inner"
+               />
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 lg:w-2/3">
+               {[
+                 { value: filterSex, setter: setFilterSex, options: ['All Sex', 'Male', 'Female'], icon: 'fa-venus-mars' },
+                 { value: filterAge, setter: setFilterAge, options: ['All Ages', 'under 19', '19-26', '27-36', '37-45', '46-55', '55 and above'], icon: 'fa-cake-candles' },
+                 { value: filterCategory, setter: setFilterCategory, options: ['All Categories', 'First Timer/Guest', 'Revisiting/Returning Member', 'Member'], icon: 'fa-layer-group' },
+                 { value: filterLocation, setter: setFilterLocation, options: ['All Locations', 'Egbeda/Akowonjo', 'Iyana-Ipaja', 'Ikotun', 'Igando', 'Ijegun', 'Oke-Odo', 'Ayobo & Ipaja'], icon: 'fa-map-pin' }
+               ].map((filter, idx) => (
+                 <div key={idx} className="relative group/filter">
+                   <select 
+                     value={filter.value} 
+                     onChange={(e) => filter.setter(e.target.value)}
+                     className="w-full pl-8 md:pl-10 pr-2 md:pr-4 py-3 md:py-5 rounded-lg md:rounded-2xl bg-white border-2 border-slate-100 outline-none font-bold text-slate-600 text-[9px] md:text-xs appearance-none cursor-pointer hover:border-indigo-200 hover:shadow-lg transition-all"
+                   >
+                     {filter.options.map(opt => <option key={opt} value={opt === filter.options[0] ? 'All' : opt}>{opt}</option>)}
+                   </select>
+                   <i className={`fa-solid ${filter.icon} absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-slate-300 text-[8px] md:text-[10px] pointer-events-none group-hover/filter:text-indigo-400 transition-colors`}></i>
+                 </div>
+               ))}
+            </div>
           </div>
         </div>
 
-        {/* Responsive Table Container */}
-        <div className="overflow-x-auto rounded-[2rem] border border-slate-100 shadow-sm bg-white">
-          <table className="w-full text-left border-collapse min-w-[1200px]">
-            <thead className="bg-slate-50/80 sticky top-0 z-10 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
-              <tr>
-                <th className="px-6 py-6 border-b border-slate-100">First Name</th>
-                <th className="px-6 py-6 border-b border-slate-100">Last Name</th>
-                <th className="px-6 py-6 border-b border-slate-100">Email Address</th>
-                <th className="px-6 py-6 border-b border-slate-100">Phone Number</th>
-                <th className="px-6 py-6 border-b border-slate-100 text-center">Sex</th>
-                <th className="px-6 py-6 border-b border-slate-100 text-center">Age Range</th>
-                <th className="px-6 py-6 border-b border-slate-100">Category</th>
-                <th className="px-6 py-6 border-b border-slate-100">Location</th>
-                <th className="px-6 py-6 border-b border-slate-100">Date Registered</th>
+        {/* Registry Table */}
+        <div className="overflow-x-auto rounded-[0.6em] md:rounded-[2.5rem] border border-slate-100 bg-white/50 shadow-inner">
+          <table className="w-full text-left border-collapse min-w-[1000px] md:min-w-[1200px]">
+            <thead>
+              <tr className="bg-slate-900 text-white">
+                <th className="px-4 md:px-8 py-6 md:py-8 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-80">Full Name</th>
+                <th className="px-4 md:px-8 py-6 md:py-8 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-80">Contact Details</th>
+                <th className="px-4 md:px-8 py-6 md:py-8 text-center text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-80">Demographics</th>
+                <th className="px-4 md:px-8 py-6 md:py-8 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-80">Classification</th>
+                <th className="px-4 md:px-8 py-6 md:py-8 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-80">Region</th>
+                <th className="px-4 md:px-8 py-6 md:py-8 text-right text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] opacity-80">Timestamp</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
-              {!loading && filteredAttendees.map(a => (
-                <tr key={a.id} className="hover:bg-indigo-50/20 transition-all duration-300">
-                  <td className="px-6 py-5 font-bold text-slate-800 capitalize">{a.firstName}</td>
-                  <td className="px-6 py-5 font-bold text-slate-800 capitalize">{a.lastName}</td>
-                  <td className="px-6 py-5 text-sm text-slate-500 font-medium">{a.email}</td>
-                  <td className="px-6 py-5 font-mono text-xs text-slate-600 font-bold">{a.phone}</td>
-                  <td className="px-6 py-5 text-center">
-                    <span className={`px-2 py-1 rounded text-[9px] font-black uppercase ${a.sex === 'Male' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
-                      {a.sex}
-                    </span>
+            <tbody className="divide-y divide-slate-100">
+              {!loading && filteredAttendees.map((a) => (
+                <tr key={a.id} className="group hover:bg-indigo-50/40 transition-all duration-300">
+                  <td className="px-4 md:px-8 py-4 md:py-8">
+                    <div className="flex items-center gap-2 md:gap-4">
+                      <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400 text-xs md:text-lg group-hover:bg-white group-hover:text-indigo-600 transition-all shadow-inner">
+                        {a.firstName?.[0]}{a.lastName?.[0]}
+                      </div>
+                      <div>
+                        <p className="font-black text-slate-900 capitalize text-sm md:text-lg tracking-tight">{a.firstName} {a.lastName}</p>
+                        <p className="text-[7px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">{a.sex}</p>
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-6 py-5 text-center">
-                    <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded text-[9px] font-black uppercase">
-                      {a.ageRange}
-                    </span>
+                  <td className="px-4 md:px-8 py-4 md:py-8">
+                    <div className="space-y-0.5 md:space-y-1">
+                      <p className="text-[10px] md:text-sm font-bold text-slate-700">{a.email}</p>
+                      <p className="text-[9px] md:text-xs font-mono font-black text-indigo-400">{a.phone}</p>
+                    </div>
                   </td>
-                  <td className="px-6 py-5">
-                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest whitespace-nowrap ${
-                      a.category === 'Member' ? 'bg-indigo-50 text-indigo-600' : 
-                      a.category === 'First Timer/Guest' ? 'bg-orange-50 text-orange-600' : 'bg-purple-50 text-purple-600'
+                  <td className="px-4 md:px-8 py-4 md:py-8 text-center">
+                    <div className="inline-flex flex-col items-center gap-1">
+                      <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded md:rounded-lg text-[7px] md:text-[10px] font-black uppercase group-hover:bg-white">
+                        {a.ageRange}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 md:px-8 py-4 md:py-8">
+                    <span className={`px-2 md:px-5 py-1 md:py-2 rounded-full text-[7px] md:text-[10px] font-black uppercase tracking-widest inline-block border shadow-sm ${
+                      a.category === 'Member' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 
+                      a.category === 'First Timer/Guest' ? 'bg-orange-50 text-orange-700 border-orange-100' : 'bg-purple-50 text-purple-700 border-purple-100'
                     }`}>
                       {a.category}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-sm font-bold text-slate-600 whitespace-nowrap">{a.location}</td>
-                  <td className="px-6 py-5 text-[10px] font-bold text-slate-400 whitespace-nowrap">
-                    {a.createdAt?.toDate ? a.createdAt.toDate().toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '---'}
+                  <td className="px-4 md:px-8 py-4 md:py-8">
+                    <p className="text-[10px] md:text-sm font-black text-slate-600 group-hover:text-slate-900 transition-colors">{a.location}</p>
+                  </td>
+                  <td className="px-4 md:px-8 py-4 md:py-8 text-right">
+                    <div className="space-y-0.5 md:space-y-1">
+                      <p className="text-[8px] md:text-[11px] font-black text-slate-800">
+                        {a.createdAt?.toDate ? a.createdAt.toDate().toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) : '---'}
+                      </p>
+                      <p className="text-[7px] md:text-[10px] font-bold text-slate-400">
+                        {a.createdAt?.toDate ? a.createdAt.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ))}
               
               {loading && (
                 <tr>
-                  <td colSpan={9} className="py-40 text-center">
-                    <div className="flex flex-col items-center gap-4">
-                      <i className="fa-solid fa-circle-notch animate-spin text-5xl text-indigo-200"></i>
-                      <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Accessing Firestore...</p>
+                  <td colSpan={6} className="py-32 md:py-48 text-center">
+                    <div className="flex flex-col items-center gap-4 md:gap-6">
+                      <div className="relative">
+                        <div className="w-12 h-12 md:w-20 md:h-20 border-2 md:border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                        <i className="fa-solid fa-satellite-dish absolute inset-0 flex items-center justify-center text-indigo-600 text-lg md:text-2xl animate-pulse"></i>
+                      </div>
+                      <p className="text-[9px] md:text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] md:tracking-[0.3em]">Syncing Attendance Registry...</p>
                     </div>
                   </td>
                 </tr>
@@ -326,10 +380,15 @@ const AdminDashboard: React.FC = () => {
 
               {!loading && filteredAttendees.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="py-40 text-center">
-                    <div className="flex flex-col items-center gap-6 opacity-40">
-                      <i className="fa-solid fa-folder-open text-6xl text-slate-200"></i>
-                      <p className="text-xl font-black text-slate-300">No records matching filters</p>
+                  <td colSpan={6} className="py-32 md:py-48 text-center">
+                    <div className="flex flex-col items-center gap-6 md:gap-8 group">
+                      <div className="w-20 h-20 md:w-32 md:h-32 bg-slate-50 rounded-[1.5rem] md:rounded-[3rem] flex items-center justify-center text-slate-200 group-hover:scale-110 transition-transform duration-700">
+                        <i className="fa-solid fa-ghost text-4xl md:text-6xl"></i>
+                      </div>
+                      <div>
+                        <p className="text-xl md:text-2xl font-black text-slate-300 tracking-tight">Zero Matches Found</p>
+                        <p className="text-slate-400 text-[8px] md:text-xs mt-1 md:mt-2 uppercase tracking-widest font-bold">Try adjusting your filters</p>
+                      </div>
                     </div>
                   </td>
                 </tr>
