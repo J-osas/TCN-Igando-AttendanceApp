@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-// Fixing firestore import errors: Ensuring collection, addDoc, and serverTimestamp are correctly imported from modular SDK
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { FormState, FormErrors } from '../types';
+import { FormState, FormErrors, Sex, Location, AgeRange, Category } from '../types';
 
 interface Props {
   onSuccess: (firstName: string) => void;
@@ -14,7 +13,10 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
     lastName: '',
     phone: '',
     email: '',
-    category: 'Member',
+    category: 'First Timer/Guest', // Default updated to the first requested option
+    sex: 'Female',
+    location: 'Igando',
+    ageRange: '27-36',
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -55,7 +57,6 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
     setSubmitError(null);
 
     try {
-      // Using the collection and addDoc functions from firebase/firestore
       const attendanceRef = collection(db, 'attendance');
       await addDoc(attendanceRef, {
         ...formData,
@@ -71,101 +72,133 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
     }
   };
 
+  const SelectField = ({ label, name, value, options, icon }: { label: string, name: string, value: string, options: string[], icon: string }) => (
+    <div className="space-y-2">
+      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{label}</label>
+      <div className="relative">
+        <select
+          name={name}
+          value={value}
+          onChange={handleChange}
+          className="w-full px-4 py-4 rounded-xl bg-[#F3E8FF] text-slate-700 outline-none appearance-none font-bold border-none cursor-pointer pr-10"
+        >
+          {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        </select>
+        <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-indigo-400">
+          <i className={`fa-solid ${icon} text-xs`}></i>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="w-full bg-white rounded-2xl overflow-hidden shadow-2xl border border-white/60">
-      <div className="p-8 md:p-12 space-y-8">
+    <div className="w-full bg-white rounded-3xl overflow-hidden shadow-2xl border border-white/60">
+      <div className="p-8 md:p-10 space-y-8">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Crossover Attendance</h2>
-          <p className="text-slate-400 text-sm mt-1 font-medium">Join us for our service into abundance.</p>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight">Check-in</h2>
+          <p className="text-slate-400 text-sm mt-1 font-medium italic">Your abundance journey starts here.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">First Name</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">First Name</label>
               <input
                 type="text"
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
-                placeholder="e.g., John"
-                className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-medium ${errors.firstName ? 'ring-2 ring-red-300' : ''}`}
+                placeholder="John"
+                className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-bold ${errors.firstName ? 'ring-2 ring-red-300' : ''}`}
               />
-              {errors.firstName && <span className="text-[10px] text-red-400 font-bold ml-1 uppercase">{errors.firstName}</span>}
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Last Name</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Last Name</label>
               <input
                 type="text"
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
-                placeholder="e.g., Doe"
-                className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-medium ${errors.lastName ? 'ring-2 ring-red-300' : ''}`}
+                placeholder="Doe"
+                className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-bold ${errors.lastName ? 'ring-2 ring-red-300' : ''}`}
               />
-              {errors.lastName && <span className="text-[10px] text-red-400 font-bold ml-1 uppercase">{errors.lastName}</span>}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="your@email.com"
-              className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-medium ${errors.email ? 'ring-2 ring-red-300' : ''}`}
-            />
-            {errors.email && <span className="text-[10px] text-red-400 font-bold ml-1 uppercase">{errors.email}</span>}
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Phone Number</label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="+234..."
-              className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-medium ${errors.phone ? 'ring-2 ring-red-300' : ''}`}
-            />
-            {errors.phone && <span className="text-[10px] text-red-400 font-bold ml-1 uppercase">{errors.phone}</span>}
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Category</label>
-            <div className="relative">
-              <select
-                name="category"
-                value={formData.category}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-4 rounded-xl bg-[#F3E8FF] text-slate-700 outline-none appearance-none font-bold border-none cursor-pointer"
-              >
-                <option value="Member">Member</option>
-                <option value="First Timer/Guest">First Timer/Guest</option>
-              </select>
-              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500">
-                <i className="fa-solid fa-chevron-down text-xs"></i>
-              </div>
+                placeholder="hello@provider.com"
+                className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-bold ${errors.email ? 'ring-2 ring-red-300' : ''}`}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone</label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="080..."
+                className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-bold ${errors.phone ? 'ring-2 ring-red-300' : ''}`}
+              />
             </div>
           </div>
 
-          {submitError && <p className="text-red-500 text-xs font-bold text-center bg-red-50 p-3 rounded-lg border border-red-100">{submitError}</p>}
+          <div className="grid grid-cols-2 gap-4">
+            <SelectField 
+              label="Sex" 
+              name="sex" 
+              value={formData.sex} 
+              options={['Male', 'Female']} 
+              icon="fa-venus-mars" 
+            />
+            <SelectField 
+              label="Age Range" 
+              name="ageRange" 
+              value={formData.ageRange} 
+              options={['under 19', '19-26', '27-36', '37-45', '46-55', '55 and above']} 
+              icon="fa-calendar-days" 
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <SelectField 
+              label="Category" 
+              name="category" 
+              value={formData.category} 
+              options={['First Timer/Guest', 'Revisiting/Returning Member', 'Member']} 
+              icon="fa-users" 
+            />
+            <SelectField 
+              label="Location" 
+              name="location" 
+              value={formData.location} 
+              options={['Egbeda/Akowonjo', 'Iyana-Ipaja', 'Ikotun', 'Igando', 'Ijegun', 'Oke-Odo', 'Ayobo & Ipaja']} 
+              icon="fa-location-dot" 
+            />
+          </div>
+
+          {submitError && <p className="text-red-500 text-[10px] font-black text-center bg-red-50 p-4 rounded-xl border border-red-100 uppercase tracking-widest">{submitError}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-5 rounded-xl font-black text-white transition-all shadow-xl active:scale-[0.98] text-base uppercase tracking-widest ${
-              loading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-[#5C6BC0] hover:bg-[#4E5BA6] hover:shadow-indigo-200'
+            className={`w-full py-6 rounded-2xl font-black text-white transition-all shadow-xl active:scale-95 text-base uppercase tracking-widest ${
+              loading ? 'bg-indigo-300 cursor-not-allowed' : 'bg-[#5C6BC0] hover:bg-[#4E5BA6] shadow-indigo-100 hover:shadow-indigo-200'
             }`}
           >
             {loading ? (
-              <span className="flex items-center justify-center gap-2">
+              <span className="flex items-center justify-center gap-3">
                 <i className="fa-solid fa-circle-notch animate-spin"></i>
-                Recording Check-in...
+                Processing...
               </span>
-            ) : 'Submit Attendance'}
+            ) : 'Complete Check-in'}
           </button>
         </form>
       </div>
