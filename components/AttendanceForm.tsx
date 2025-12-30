@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { FormState, FormErrors, Sex, Location, AgeRange, Category } from '../types';
 
@@ -58,11 +58,43 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
 
     try {
       const attendanceRef = collection(db, 'attendance');
+
+      // 1. Check for duplicate Email (Normalized to lowercase)
+      const qEmail = query(
+        attendanceRef, 
+        where('email', '==', formData.email.trim().toLowerCase()), 
+        limit(1)
+      );
+      const emailSnapshot = await getDocs(qEmail);
+
+      if (!emailSnapshot.empty) {
+        setSubmitError('You have already registered for this event.');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Check for duplicate Phone
+      const qPhone = query(
+        attendanceRef, 
+        where('phone', '==', formData.phone.trim()), 
+        limit(1)
+      );
+      const phoneSnapshot = await getDocs(qPhone);
+
+      if (!phoneSnapshot.empty) {
+        setSubmitError('This phone number is already registered.');
+        setLoading(false);
+        return;
+      }
+
+      // 3. If unique, proceed with registration
       await addDoc(attendanceRef, {
         ...formData,
+        email: formData.email.trim().toLowerCase(), // Always store normalized email
         eventId: 'tcn-igando-crossover-2025',
         createdAt: serverTimestamp(),
       });
+      
       onSuccess(formData.firstName);
     } catch (error: any) {
       console.error("Submission Error:", error);
@@ -184,7 +216,12 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
             />
           </div>
 
-          {submitError && <p className="text-red-500 text-[10px] font-black text-center bg-red-50 p-4 rounded-xl border border-red-100 uppercase tracking-widest">{submitError}</p>}
+          {submitError && (
+            <div className="flex items-center gap-3 bg-red-50 p-4 rounded-xl border border-red-100 animate-fade-in">
+              <i className="fa-solid fa-triangle-exclamation text-red-500"></i>
+              <p className="text-red-600 text-[10px] font-black uppercase tracking-widest">{submitError}</p>
+            </div>
+          )}
 
           <button
             type="submit"
@@ -196,7 +233,7 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
             {loading ? (
               <span className="flex items-center justify-center gap-3">
                 <i className="fa-solid fa-circle-notch animate-spin"></i>
-                Processing...
+                Verifying...
               </span>
             ) : 'Complete Check-in'}
           </button>

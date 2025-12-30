@@ -4,6 +4,7 @@ import AttendanceForm from './components/AttendanceForm';
 import AdminDashboard from './components/AdminDashboard';
 import { db } from './firebase/config';
 import { collection, onSnapshot, query } from 'firebase/firestore';
+import { GoogleGenAI } from "@google/genai";
 
 const App: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
@@ -23,27 +24,25 @@ const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // SECURE VERSION: Calls our internal API instead of exposing the Gemini Key
   useEffect(() => {
     if (submitted && attendeeName) {
-      const fetchAiMessage = async () => {
+      const generatePropheticWord = async () => {
         try {
-          const response = await fetch('/api/prophetic-word', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: attendeeName }),
+          // Direct frontend call to Gemini using the provided API key environment variable
+          const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+          const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: `You are a prophetic voice for a Christian crossover service at TCN Igando. Generate a short, warm, and powerful word of encouragement for 2026 for ${attendeeName}. Theme: "Crossover to Abundance". Max 30 words. Make it sound spiritually uplifting, personal, and full of hope for the new year.`,
           });
           
-          if (!response.ok) throw new Error('API request failed');
-          
-          const data = await response.json();
-          setAiMessage(data.text);
+          const text = response.text || "May the Lord bless your crossover into 2026 with infinite favor and abundance.";
+          setAiMessage(text);
         } catch (err) {
-          console.error('Prophetic word error:', err);
-          setAiMessage("May the Lord bless your crossover into 2026 with infinite favor.");
+          console.error('Prophetic word generation error:', err);
+          setAiMessage("May the Lord bless your crossover into 2026 with infinite favor and divine abundance. Your season of plenty has arrived!");
         }
       };
-      fetchAiMessage();
+      generatePropheticWord();
     }
   }, [submitted, attendeeName]);
 
@@ -117,25 +116,32 @@ const App: React.FC = () => {
             <AttendanceForm onSuccess={handleSuccess} />
           </div>
         ) : (
-          <div className="bg-white p-12 rounded-3xl shadow-2xl border border-white max-md w-full mx-auto text-center animate-bounce-in relative overflow-hidden">
+          <div className="bg-white p-12 rounded-3xl shadow-2xl border border-white max-w-[500px] w-full mx-auto text-center animate-bounce-in relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#5C6BC0] to-indigo-300"></div>
             <div className="w-24 h-24 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner ring-8 ring-green-50/50">
               <i className="fa-solid fa-check text-4xl"></i>
             </div>
             <h2 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">Check-in Complete!</h2>
-            <div className="mb-10 p-6 bg-slate-50 rounded-2xl border border-slate-100 relative">
+            <div className="mb-10 p-8 bg-slate-50 rounded-2xl border border-slate-100 relative min-h-[140px] flex flex-col items-center justify-center">
               <i className="fa-solid fa-quote-left absolute top-4 left-4 text-slate-200 text-xl"></i>
-              <p className="text-slate-600 italic leading-relaxed text-base font-medium">
-                {aiMessage || "Prophetic word loading..."}
-              </p>
-              {aiMessage && (
-                <div className="mt-4 pt-4 border-t border-slate-200/60">
-                  <p className="text-[10px] font-black text-[#5C6BC0] uppercase tracking-[0.2em]">Your 2026 Prophetic Seed</p>
+              {!aiMessage ? (
+                <div className="flex flex-col items-center gap-3">
+                  <i className="fa-solid fa-circle-notch animate-spin text-indigo-300 text-2xl"></i>
+                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Receiving your 2026 word...</p>
                 </div>
+              ) : (
+                <>
+                  <p className="text-slate-600 italic leading-relaxed text-base font-medium px-4">
+                    "{aiMessage}"
+                  </p>
+                  <div className="mt-6 pt-4 border-t border-slate-200/60 w-full">
+                    <p className="text-[9px] font-black text-[#5C6BC0] uppercase tracking-[0.2em]">Your Prophetic Seed for Abundance</p>
+                  </div>
+                </>
               )}
             </div>
             <button onClick={handleReset} className="w-full py-4 px-6 bg-[#5C6BC0] text-white rounded-xl font-bold hover:bg-[#4E5BA6] transition-all shadow-lg active:scale-95 text-base uppercase tracking-widest">
-              Done
+              Return to Home
             </button>
           </div>
         )}
