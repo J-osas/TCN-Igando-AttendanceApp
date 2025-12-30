@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 const ADMIN_PASSWORD = 'IGANDO_ADMIN_2025';
@@ -8,6 +8,9 @@ const AdminDashboard: React.FC = () => {
   const [attendees, setAttendees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [confirmDeleteText, setConfirmDeleteText] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -85,6 +88,31 @@ const AdminDashboard: React.FC = () => {
   }, [attendees, searchQuery, filterSex, filterAge, filterCategory, filterLocation]);
 
   /**
+   * Handle Clearing all data from Firestore
+   */
+  const handleClearAllData = async () => {
+    if (confirmDeleteText.toUpperCase() !== 'DELETE') return;
+    
+    setIsClearing(true);
+    setShowClearModal(false);
+    
+    try {
+      const deletePromises = attendees.map(attendee => 
+        deleteDoc(doc(db, 'attendance', attendee.id))
+      );
+      
+      await Promise.all(deletePromises);
+      showToast(`Successfully cleared ${attendees.length} records`, "success");
+      setConfirmDeleteText('');
+    } catch (error) {
+      console.error("Clear data error:", error);
+      showToast("Failed to clear database", "error");
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
+  /**
    * Enhanced CSV Export Logic
    */
   const downloadCSV = async () => {
@@ -97,14 +125,12 @@ const AdminDashboard: React.FC = () => {
     setExporting(true);
 
     try {
-      // Helper to escape values for CSV
       const escapeCsv = (val: any) => {
         if (val === undefined || val === null) return '""';
         const str = String(val).replace(/"/g, '""').replace(/\n/g, ' ');
         return `"${str}"`;
       };
 
-      // Define columns mapping for consistency
       const columns = [
         { label: 'First Name', key: 'firstName' },
         { label: 'Last Name', key: 'lastName' },
@@ -119,11 +145,8 @@ const AdminDashboard: React.FC = () => {
       ];
 
       const csvRows: string[] = [];
-      
-      // 1. Headers
       csvRows.push(columns.map(col => escapeCsv(col.label)).join(','));
 
-      // 2. Data Rows
       filteredAttendees.forEach(a => {
         const dateObj = a.createdAt?.toDate ? a.createdAt.toDate() : null;
         
@@ -131,7 +154,7 @@ const AdminDashboard: React.FC = () => {
           firstName: a.firstName,
           lastName: a.lastName,
           email: a.email,
-          phone: a.phone, // Adding a space or ' can prevent scientific notation in Excel
+          phone: a.phone,
           sex: a.sex,
           ageRange: a.ageRange,
           category: a.category,
@@ -144,18 +167,15 @@ const AdminDashboard: React.FC = () => {
         csvRows.push(row.join(','));
       });
 
-      // 3. Assemble and Download
-      const csvString = '\uFEFF' + csvRows.join('\n'); // UTF-8 BOM for Excel
+      const csvString = '\uFEFF' + csvRows.join('\n');
       const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
-      
       const link = document.createElement('a');
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '_');
       
       link.setAttribute('href', url);
       link.setAttribute('download', `TCN_Igando_Registry_${timestamp}.csv`);
       link.style.display = 'none';
-      
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -231,6 +251,52 @@ const AdminDashboard: React.FC = () => {
         </div>
       )}
 
+      {/* Confirmation Modal */}
+      {showClearModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center px-4 overflow-hidden bg-slate-900/40 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md p-8 bg-white rounded-[1.5rem] shadow-2xl border border-white transform transition-all animate-bounce-in">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-2xl shadow-inner">
+                <i className="fa-solid fa-triangle-exclamation animate-pulse"></i>
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">System Purge</h3>
+                <p className="text-slate-400 text-xs font-bold mt-2 uppercase tracking-widest leading-relaxed">
+                  You are about to permanently delete <span className="text-red-500">{attendees.length}</span> records. This action cannot be undone.
+                </p>
+              </div>
+              
+              <div className="w-full pt-4">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-left ml-2">Type "DELETE" to confirm</p>
+                <input 
+                  type="text" 
+                  value={confirmDeleteText}
+                  onChange={(e) => setConfirmDeleteText(e.target.value)}
+                  placeholder="Type here..."
+                  className="w-full px-5 py-4 bg-slate-50 rounded-xl border-2 border-slate-100 outline-none focus:border-red-200 transition-all font-black text-center tracking-widest text-slate-700"
+                />
+              </div>
+
+              <div className="flex gap-3 w-full pt-4">
+                <button 
+                  onClick={() => { setShowClearModal(false); setConfirmDeleteText(''); }}
+                  className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-colors"
+                >
+                  Abort
+                </button>
+                <button 
+                  disabled={confirmDeleteText.toUpperCase() !== 'DELETE'}
+                  onClick={handleClearAllData}
+                  className="flex-[2] py-4 bg-red-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 shadow-xl shadow-red-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  Confirm Purge
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Area */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-6 mb-8 md:mb-10">
         <div>
@@ -240,19 +306,35 @@ const AdminDashboard: React.FC = () => {
           </div>
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter">Admin <span className="text-indigo-600">Area</span></h2>
         </div>
-        <button 
-          onClick={downloadCSV} 
-          disabled={exporting}
-          className={`group relative w-full md:w-auto px-6 md:px-10 py-4 md:py-5 text-white rounded-[0.6em] md:rounded-[2rem] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-2 md:gap-3 overflow-hidden text-[10px] md:text-base ${
-            exporting ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-indigo-600'
-          }`}
-        >
-           <span className="relative z-10 flex items-center gap-2 md:gap-3">
-             <i className={`fa-solid ${exporting ? 'fa-circle-notch animate-spin' : 'fa-cloud-arrow-down'} text-base md:text-xl`}></i> 
-             {exporting ? 'Generating...' : 'Export Attendees'}
-           </span>
-           <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        </button>
+        
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <button 
+            onClick={downloadCSV} 
+            disabled={exporting || isClearing}
+            className={`group relative w-full md:w-auto px-6 md:px-10 py-4 md:py-5 text-white rounded-[0.6em] md:rounded-[2rem] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-2 md:gap-3 overflow-hidden text-[10px] md:text-base ${
+              exporting ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-indigo-600'
+            }`}
+          >
+             <span className="relative z-10 flex items-center gap-2 md:gap-3">
+               <i className={`fa-solid ${exporting ? 'fa-circle-notch animate-spin' : 'fa-cloud-arrow-down'} text-base md:text-xl`}></i> 
+               {exporting ? 'Generating...' : 'Export Attendees'}
+             </span>
+             <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          </button>
+
+          <button 
+            onClick={() => setShowClearModal(true)}
+            disabled={exporting || isClearing || attendees.length === 0}
+            className={`group relative w-full md:w-auto px-6 md:px-10 py-4 md:py-5 text-white rounded-[0.6em] md:rounded-[2rem] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-2 md:gap-3 overflow-hidden text-[10px] md:text-base ${
+              isClearing ? 'bg-red-300 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'
+            }`}
+          >
+             <span className="relative z-10 flex items-center gap-2 md:gap-3">
+               <i className={`fa-solid ${isClearing ? 'fa-circle-notch animate-spin' : 'fa-trash-can'} text-base md:text-xl`}></i> 
+               {isClearing ? 'Purging...' : 'Clear All'}
+             </span>
+          </button>
+        </div>
       </div>
 
       {/* Summary Stats Grid */}
