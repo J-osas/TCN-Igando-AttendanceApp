@@ -28,7 +28,6 @@ const App: React.FC = () => {
     if (submitted && attendeeName) {
       const generatePropheticWord = async () => {
         try {
-          // Direct frontend call to Gemini using the provided API key environment variable
           const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
           const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
@@ -60,27 +59,46 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F3E8FF] p-4 flex flex-col items-center">
-      <div className="w-full max-w-7xl flex justify-between items-center py-6 mb-8 px-2">
-        <div className="flex items-center group cursor-pointer transition-transform hover:scale-105 active:scale-95" onClick={() => setView('form')}>
-          <div className="h-16 md:h-20 flex items-center justify-center">
-             <img 
-               src="https://joshuaehimare.com/wp-content/uploads/2025/12/igando.png" 
-               alt="TCN Igando Logo" 
-               className="h-full w-auto object-contain" 
-             />
+      {/* Responsive Header Area */}
+      <div className="w-full max-w-7xl flex flex-col md:flex-row justify-between items-start md:items-center py-6 mb-8 px-4 gap-4 md:gap-0">
+        
+        {/* Top Row for Mobile: Logo + Admin Area | Desktop: Logo Only */}
+        <div className="w-full md:w-auto flex flex-row justify-between items-center">
+          {/* Logo Section */}
+          <div className="flex items-center group cursor-pointer transition-transform hover:scale-105 active:scale-95" onClick={() => setView('form')}>
+            <div className="h-12 md:h-20 flex items-center justify-center">
+               <img 
+                 src="https://joshuaehimare.com/wp-content/uploads/2025/12/igando.png" 
+                 alt="TCN Igando Logo" 
+                 className="h-full w-auto object-contain" 
+               />
+            </div>
           </div>
+
+          {/* Admin Switcher (Mobile Inline with Logo) */}
+          <button 
+            onClick={() => setView(view === 'admin' ? 'form' : 'admin')}
+            className="md:hidden text-[10px] font-black text-slate-500 hover:text-[#5C6BC0] transition-all flex items-center gap-2 uppercase tracking-widest bg-white/40 px-3 py-2 rounded-xl border border-white/60 backdrop-blur-sm"
+          >
+            <i className={`fa-solid ${view === 'admin' ? 'fa-arrow-left' : 'fa-lock'}`}></i>
+            {view === 'admin' ? 'Back' : 'Admin'}
+          </button>
         </div>
 
-        <div className="flex flex-col items-end gap-3">
+        {/* Desktop Controls (Counter + Admin) / Mobile Counter (Below) */}
+        <div className="w-full md:w-auto flex flex-col items-start md:items-end gap-3">
+          {/* Attendance Counter */}
           <div className="bg-[#E9D5FF] px-5 py-2.5 rounded-full flex items-center gap-3 shadow-md border border-white/60 backdrop-blur-sm">
             <div className="w-2.5 h-2.5 bg-[#5C6BC0] rounded-full animate-pulse shadow-[0_0_8px_rgba(92,107,192,0.6)]"></div>
-            <span className="text-[#5C6BC0] font-extrabold text-sm md:text-base tracking-tight">
+            <span className="text-[#5C6BC0] font-extrabold text-xs md:text-base tracking-tight">
               {count.toLocaleString()} Attendees
             </span>
           </div>
+          
+          {/* Admin Switcher (Desktop Version - Stacked) */}
           <button 
             onClick={() => setView(view === 'admin' ? 'form' : 'admin')}
-            className="text-[11px] font-bold text-slate-500 hover:text-[#5C6BC0] transition-all flex items-center gap-2 group/btn uppercase tracking-wider"
+            className="hidden md:flex text-[11px] font-bold text-slate-500 hover:text-[#5C6BC0] transition-all items-center gap-2 group/btn uppercase tracking-wider"
           >
             <i className={`fa-solid ${view === 'admin' ? 'fa-arrow-left' : 'fa-lock'} text-[10px] group-hover/btn:-translate-x-1 transition-transform`}></i>
             {view === 'admin' ? 'Return to Portal' : 'Admin Area'}
