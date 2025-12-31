@@ -46,7 +46,9 @@ const App: React.FC = () => {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setCount(snapshot.size);
     }, (error) => {
-      console.error("Firestore snapshot error:", error);
+      console.error("Firestore counter listener error:", error);
+      // Fallback: If permission is denied, keep count at 0 rather than crashing
+      setCount(0);
     });
     return () => unsubscribe();
   }, []);

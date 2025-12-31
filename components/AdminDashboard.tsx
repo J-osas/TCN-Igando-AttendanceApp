@@ -45,7 +45,6 @@ const AdminDashboard: React.FC = () => {
     if (isAuthenticated) {
       setLoading(true);
       
-      // Attendance Sync
       const attendanceRef = collection(db, 'attendance');
       const q = query(attendanceRef, orderBy('createdAt', 'desc'));
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -53,14 +52,20 @@ const AdminDashboard: React.FC = () => {
         setAttendees(data);
         setLastUpdated(new Date());
         setLoading(false);
+      }, (error) => {
+        console.error("Attendance Sync Error:", error);
+        setLoading(false);
+        showToast("Sync Error: Missing Permissions", "error");
       });
 
-      // QR Scans Sync
       const scansRef = collection(db, 'qr_scans');
       const qScans = query(scansRef, orderBy('timestamp', 'desc'));
       const unsubscribeScans = onSnapshot(qScans, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setQrScans(data);
+      }, (error) => {
+        console.error("QR Scans Sync Error:", error);
+        showToast("QR Analytics: Missing Permissions", "error");
       });
 
       return () => {
@@ -172,8 +177,8 @@ const AdminDashboard: React.FC = () => {
       const columns = [
         { label: 'First Name', key: 'firstName' },
         { label: 'Last Name', key: 'lastName' },
-        { label: 'Email', key: 'email' },
-        { label: 'Phone', key: 'phone' },
+        { label: 'Email Address', key: 'email' },
+        { label: 'Phone Number', key: 'phone' },
         { label: 'Sex', key: 'sex' },
         { label: 'Age Range', key: 'ageRange' },
         { label: 'Category', key: 'category' },
@@ -297,7 +302,7 @@ const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Modals for Export and Clear (Kept as requested) */}
+      {/* Modals for Export and Clear */}
       {showExportModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center px-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
           <div className="w-full max-w-xl p-6 bg-white rounded-[0.6em] shadow-2xl border border-white max-h-[90vh] overflow-y-auto">
@@ -349,14 +354,27 @@ const AdminDashboard: React.FC = () => {
           <h2 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter">Admin <span className="text-indigo-600">Area</span></h2>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
-          <button onClick={handleOpenExport} disabled={exporting || attendees.length === 0} className="flex-1 md:w-auto px-8 py-4 bg-slate-900 text-white rounded-[0.6em] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl"><i className="fa-solid fa-cloud-arrow-down mr-2"></i> Export</button>
-          <button onClick={() => setShowClearModal(true)} disabled={isClearing || attendees.length === 0} className="flex-1 md:w-auto px-8 py-4 bg-red-500 text-white rounded-[0.6em] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-xl"><i className="fa-solid fa-trash-can mr-2"></i> Clear</button>
+          <button 
+            onClick={handleOpenExport} 
+            disabled={exporting || attendees.length === 0} 
+            className="flex-1 md:w-auto px-8 py-4 bg-slate-900 text-white rounded-[0.6em] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl flex items-center justify-center gap-2 whitespace-nowrap"
+          >
+            <i className="fa-solid fa-cloud-arrow-down"></i>
+            <span>Export</span>
+          </button>
+          <button 
+            onClick={() => setShowClearModal(true)} 
+            disabled={isClearing || attendees.length === 0} 
+            className="flex-1 md:w-auto px-8 py-4 bg-red-500 text-white rounded-[0.6em] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-xl flex items-center justify-center gap-2 whitespace-nowrap"
+          >
+            <i className="fa-solid fa-trash-can"></i>
+            <span>Clear</span>
+          </button>
         </div>
       </div>
 
       {/* QR Hub & Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-        {/* QR Hub */}
         <div className="lg:col-span-1 bg-white p-8 rounded-[0.6em] shadow-xl border border-white flex flex-col items-center justify-center text-center">
            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-[0.6em] flex items-center justify-center mb-4">
               <i className="fa-solid fa-qrcode text-2xl"></i>
@@ -381,7 +399,6 @@ const AdminDashboard: React.FC = () => {
            </div>
         </div>
 
-        {/* QR Analytics */}
         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
            <div className="bg-indigo-600 p-8 rounded-[0.6em] shadow-xl relative overflow-hidden text-white group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 -mr-12 -mt-12 rounded-full blur-3xl transition-transform group-hover:scale-110"></div>
@@ -444,19 +461,19 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Registry Table & Stats Cards Grid (Already present, maintained) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-12">
         <StatCard title="Total Registry" count={stats.total} colorClass="text-indigo-500" icon="fa-chart-pie" bgGradient="bg-indigo-500" />
         <StatCard title="First-Time Guests" count={stats.guests} colorClass="text-orange-500" icon="fa-fire" bgGradient="bg-orange-500" />
         <StatCard title="Returning Members" count={stats.returning} colorClass="text-purple-500" icon="fa-heart" bgGradient="bg-purple-500" />
         <StatCard title="Active Members" count={stats.members} colorClass="text-emerald-500" icon="fa-id-badge" bgGradient="bg-emerald-500" />
+        <StatCard title="Total QR Scans" count={stats.qrTotal} colorClass="text-blue-500" icon="fa-bolt" bgGradient="bg-blue-500" />
       </div>
 
-      <div className="bg-white/70 backdrop-blur-xl rounded-[0.6em] shadow-xl p-4 md:p-12 border border-white">
-        <div className="flex flex-col lg:flex-row gap-4 mb-12">
+      <div className="bg-white/70 backdrop-blur-xl rounded-[0.6em] shadow-xl p-4 md:p-8 border border-white">
+        <div className="flex flex-col lg:flex-row gap-4 mb-10">
           <div className="flex-1 relative group">
-             <i className="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-slate-300"></i>
-             <input type="text" placeholder="Quick search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-16 pr-8 py-5 rounded-[0.6em] bg-slate-100/50 border-2 border-transparent outline-none font-bold text-slate-800 focus:bg-white focus:border-indigo-100 shadow-inner" />
+             <i className="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors"></i>
+             <input type="text" placeholder="Search by name, email or phone..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-16 pr-8 py-5 rounded-[0.6em] bg-slate-100/50 border-2 border-transparent outline-none font-bold text-slate-800 focus:bg-white focus:border-indigo-100 shadow-inner transition-all" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:w-2/3">
              {[
@@ -465,29 +482,73 @@ const AdminDashboard: React.FC = () => {
                { value: filterCategory, setter: setFilterCategory, options: ['All Categories', 'First Timer/Guest', 'Revisiting/Returning Member', 'Member'], icon: 'fa-layer-group' },
                { value: filterLocation, setter: setFilterLocation, options: ['All Locations', 'Egbeda/Akowonjo', 'Iyana-Ipaja', 'Ikotun', 'Igando', 'Ijegun', 'Oke-Odo', 'Ayobo & Ipaja'], icon: 'fa-map-pin' }
              ].map((f, i) => (
-               <div key={i} className="relative"><select value={f.value} onChange={(e) => f.setter(e.target.value)} className="w-full pl-10 pr-4 py-4 rounded-[0.6em] bg-white border-2 border-slate-100 outline-none font-bold text-slate-600 text-[10px] appearance-none">{f.options.map(o => <option key={o} value={o === f.options[0] ? 'All' : o}>{o}</option>)}</select><i className={`fa-solid ${f.icon} absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-[10px]`}></i></div>
+               <div key={i} className="relative"><select value={f.value} onChange={(e) => f.setter(e.target.value)} className="w-full pl-10 pr-4 py-4 rounded-[0.6em] bg-white border-2 border-slate-100 outline-none font-bold text-slate-600 text-[10px] appearance-none cursor-pointer hover:border-indigo-100">{f.options.map(o => <option key={o} value={o === f.options[0] ? 'All' : o}>{o}</option>)}</select><i className={`fa-solid ${f.icon} absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-[10px]`}></i></div>
              ))}
           </div>
         </div>
 
         <div className="overflow-x-auto rounded-[0.6em] border border-slate-100 bg-white shadow-inner">
-          <table className="w-full text-left border-collapse min-w-[1000px]">
-            <thead className="bg-slate-900 text-white"><tr className="text-[10px] font-black uppercase tracking-[0.2em]">
-                <th className="px-8 py-6 opacity-80">Full Name</th><th className="px-8 py-6 opacity-80">Contact Details</th><th className="px-8 py-6 text-center opacity-80">Demographics</th><th className="px-8 py-6 opacity-80">Classification</th><th className="px-8 py-6 opacity-80">Region</th><th className="px-8 py-6 text-right opacity-80">Timestamp</th>
-            </tr></thead>
+          <table className="w-full text-left border-collapse min-w-[1200px]">
+            <thead>
+              <tr className="bg-slate-900 text-white">
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50">Attendee Name</th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50">Email Address</th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50">Phone Number</th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50 text-center">Demographics</th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50 whitespace-nowrap">Category</th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50 whitespace-nowrap">Location</th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] text-right">Registration Time</th>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-slate-100">
               {!loading && filteredAttendees.map((a) => (
-                <tr key={a.id} className="group hover:bg-indigo-50/40 transition-all">
-                  <td className="px-8 py-6"><div className="flex items-center gap-4"><div className="w-10 h-10 rounded-[0.6em] bg-slate-100 flex items-center justify-center font-black text-slate-400 text-xs">{a.firstName?.[0]}{a.lastName?.[0]}</div><div><p className="font-black text-slate-900 capitalize text-sm">{a.firstName} {a.lastName}</p><p className="text-[8px] font-black text-slate-400 uppercase">{a.sex}</p></div></div></td>
-                  <td className="px-8 py-6"><p className="text-sm font-bold text-slate-700">{a.email}</p><p className="text-[10px] font-black text-indigo-400">{a.phone}</p></td>
-                  <td className="px-8 py-6 text-center"><span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-[0.6em] text-[10px] font-black uppercase">{a.ageRange}</span></td>
-                  <td className="px-8 py-6"><span className={`px-4 py-1.5 rounded-[0.6em] text-[8px] font-black uppercase tracking-widest border ${a.category === 'Member' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : a.category === 'First Timer/Guest' ? 'bg-orange-50 text-orange-700 border-orange-100' : 'bg-purple-50 text-purple-700 border-purple-100'}`}>{a.category}</span></td>
-                  <td className="px-8 py-6 text-sm font-black text-slate-600">{a.location}</td>
-                  <td className="px-8 py-6 text-right"><p className="text-[11px] font-black text-slate-800">{a.createdAt?.toDate ? a.createdAt.toDate().toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }) : '---'}</p><p className="text-[10px] font-bold text-slate-400">{a.createdAt?.toDate ? a.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</p></td>
+                <tr key={a.id} className="group hover:bg-indigo-50/40 transition-all duration-200">
+                  <td className="px-6 py-5 border-r border-slate-50/50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-[0.6em] bg-indigo-50 text-indigo-400 flex items-center justify-center font-black text-xs group-hover:bg-white transition-colors">
+                        {a.firstName?.[0]}{a.lastName?.[0]}
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-900 capitalize text-sm">{a.firstName} {a.lastName}</p>
+                        <p className="text-[9px] font-black text-slate-300 uppercase">{a.sex}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5 border-r border-slate-50/50">
+                    <p className="text-sm font-medium text-slate-600 truncate max-w-[200px]">{a.email}</p>
+                  </td>
+                  <td className="px-6 py-5 border-r border-slate-50/50">
+                    <p className="text-sm font-mono font-bold text-indigo-400">{a.phone}</p>
+                  </td>
+                  <td className="px-6 py-5 border-r border-slate-50/50 text-center">
+                    <span className="inline-block px-3 py-1 bg-slate-50 text-slate-500 rounded-[0.6em] text-[10px] font-black uppercase group-hover:bg-white">
+                      {a.ageRange}
+                    </span>
+                  </td>
+                  <td className="px-6 py-5 border-r border-slate-50/50">
+                    <span className={`whitespace-nowrap px-3 py-1 rounded-[0.6em] text-[9px] font-black uppercase tracking-wider border shadow-sm ${
+                      a.category === 'Member' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 
+                      a.category === 'First Timer/Guest' ? 'bg-orange-50 text-orange-700 border-orange-100' : 
+                      'bg-purple-50 text-purple-700 border-purple-100'
+                    }`}>
+                      {a.category}
+                    </span>
+                  </td>
+                  <td className="px-6 py-5 border-r border-slate-50/50">
+                    <p className="text-sm font-bold text-slate-600 whitespace-nowrap truncate max-w-[180px]">{a.location}</p>
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <p className="text-[11px] font-black text-slate-800">
+                      {a.createdAt?.toDate ? a.createdAt.toDate().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '--'}
+                    </p>
+                    <p className="text-[10px] font-medium text-slate-400">
+                      {a.createdAt?.toDate ? a.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                    </p>
+                  </td>
                 </tr>
               ))}
-              {loading && <tr><td colSpan={6} className="py-48 text-center"><div className="flex flex-col items-center gap-6"><div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div><p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Syncing Registry...</p></div></td></tr>}
-              {!loading && filteredAttendees.length === 0 && <tr><td colSpan={6} className="py-48 text-center text-slate-300 text-xl font-black uppercase">Zero Matches Found</td></tr>}
+              {loading && <tr><td colSpan={7} className="py-48 text-center"><div className="flex flex-col items-center gap-6"><div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div><p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Refreshing Registry...</p></div></td></tr>}
+              {!loading && filteredAttendees.length === 0 && <tr><td colSpan={7} className="py-48 text-center text-slate-300 text-xl font-black uppercase">Zero Records Found</td></tr>}
             </tbody>
           </table>
         </div>
