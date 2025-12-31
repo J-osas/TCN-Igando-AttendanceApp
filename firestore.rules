@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Attendance collection rules
-    match /attendance/{document} {
+    match /attendance/{document=**} {
       // Allow public to create new registration records
       // Allow public to read for duplicate checking and the live counter
       allow read, create: if true;
@@ -12,10 +12,13 @@ service cloud.firestore {
     }
 
     // QR Scan Tracking rules
-    match /qr_scans/{document} {
+    match /qr_scans/{document=**} {
       // Allow public to record scan events
       // Allow reading for the analytics in the Admin Dashboard
       allow read, create: if true;
+      
+      // Allow deletion for cleanup
+      allow delete: if true;
     }
   }
 }

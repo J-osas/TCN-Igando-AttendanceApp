@@ -480,7 +480,7 @@ const AdminDashboard: React.FC = () => {
                { value: filterSex, setter: setFilterSex, options: ['All Sex', 'Male', 'Female'], icon: 'fa-venus-mars' },
                { value: filterAge, setter: setFilterAge, options: ['All Ages', 'under 19', '19-26', '27-36', '37-45', '46-55', '55 and above'], icon: 'fa-cake-candles' },
                { value: filterCategory, setter: setFilterCategory, options: ['All Categories', 'First Timer/Guest', 'Revisiting/Returning Member', 'Member'], icon: 'fa-layer-group' },
-               { value: filterLocation, setter: setFilterLocation, options: ['All Locations', 'Egbeda/Akowonjo', 'Iyana-Ipaja', 'Ikotun', 'Igando', 'Ijegun', 'Oke-Odo', 'Ayobo & Ipaja'], icon: 'fa-map-pin' }
+               { value: filterLocation, setter: setFilterLocation, options: ['All Locations', 'OJO', 'IBA', 'AGBARA', 'IGANDO', 'AKESAN', 'IYANA-IPAJA', 'IKOTUN', 'IJEGUN', 'OKE-ODO', 'AYOBO-IPAJA', 'EGBEDA/AKOWONJO', 'IYANA ERA', 'AMUWO ODOFIN'], icon: 'fa-map-pin' }
              ].map((f, i) => (
                <div key={i} className="relative"><select value={f.value} onChange={(e) => f.setter(e.target.value)} className="w-full pl-10 pr-4 py-4 rounded-[0.6em] bg-white border-2 border-slate-100 outline-none font-bold text-slate-600 text-[10px] appearance-none cursor-pointer hover:border-indigo-100">{f.options.map(o => <option key={o} value={o === f.options[0] ? 'All' : o}>{o}</option>)}</select><i className={`fa-solid ${f.icon} absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-[10px]`}></i></div>
              ))}

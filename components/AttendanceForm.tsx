@@ -15,7 +15,7 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
     email: '',
     category: '' as Category, // Updated to empty to show placeholder
     sex: '' as Sex,           // Updated to empty to show placeholder
-    location: 'Igando',       // Keeping existing default
+    location: 'IGANDO',       // Matching case with updated list
     ageRange: '' as AgeRange,  // Updated to empty to show placeholder
   });
 
@@ -224,7 +224,7 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
               label="Location" 
               name="location" 
               value={formData.location} 
-              options={['Egbeda/Akowonjo', 'Iyana-Ipaja', 'Ikotun', 'Igando', 'Ijegun', 'Oke-Odo', 'Ayobo & Ipaja']} 
+              options={['OJO', 'IBA', 'AGBARA', 'IGANDO', 'AKESAN', 'IYANA-IPAJA', 'IKOTUN', 'IJEGUN', 'OKE-ODO', 'AYOBO-IPAJA', 'EGBEDA/AKOWONJO', 'IYANA ERA', 'AMUWO ODOFIN']} 
               icon="fa-location-dot" 
             />
           </div>
