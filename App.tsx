@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import AttendanceForm from './components/AttendanceForm';
 import AdminDashboard from './components/AdminDashboard';
 import { db } from './firebase/config';
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, onSnapshot, query, addDoc, serverTimestamp } from 'firebase/firestore';
 import { GoogleGenAI } from "@google/genai";
 
 const App: React.FC = () => {
@@ -15,6 +14,34 @@ const App: React.FC = () => {
   const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
+    // QR Scan Tracking Logic
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('src') === 'qr') {
+      const trackScan = async () => {
+        try {
+          const userAgent = navigator.userAgent;
+          const isMobile = /Mobi|Android|iPhone/i.test(userAgent);
+          const browser = userAgent.includes('Chrome') ? 'Chrome' : 
+                          userAgent.includes('Safari') ? 'Safari' : 
+                          userAgent.includes('Firefox') ? 'Firefox' : 'Other';
+          
+          await addDoc(collection(db, 'qr_scans'), {
+            timestamp: serverTimestamp(),
+            device: isMobile ? 'Mobile' : 'Desktop',
+            browser: browser,
+            userAgent: userAgent
+          });
+          
+          // Clean up URL to prevent multiple logs on refresh
+          const newUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        } catch (err) {
+          console.error("QR Scan Tracking Error:", err);
+        }
+      };
+      trackScan();
+    }
+
     const q = query(collection(db, 'attendance'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setCount(snapshot.size);
@@ -78,7 +105,7 @@ const App: React.FC = () => {
           {/* Admin Switcher (Mobile Inline with Logo) */}
           <button 
             onClick={() => setView(view === 'admin' ? 'form' : 'admin')}
-            className="md:hidden text-[10px] font-black text-slate-500 hover:text-[#5C6BC0] transition-all flex items-center gap-2 uppercase tracking-widest bg-white/40 px-3 py-2 rounded-xl border border-white/60 backdrop-blur-sm"
+            className="md:hidden text-[10px] font-black text-slate-500 hover:text-[#5C6BC0] transition-all flex items-center gap-2 uppercase tracking-widest bg-white/40 px-3 py-2 rounded-[0.6em] border border-white/60 backdrop-blur-sm"
           >
             <i className={`fa-solid ${view === 'admin' ? 'fa-arrow-left' : 'fa-lock'}`}></i>
             {view === 'admin' ? 'Back' : 'Admin'}
@@ -111,7 +138,7 @@ const App: React.FC = () => {
           <AdminDashboard />
         ) : !submitted ? (
           <div className="flex flex-col items-center w-full max-w-[600px] animate-fade-in">
-            <div className="w-full aspect-square rounded-2xl overflow-hidden shadow-2xl mb-8 border-4 border-white/40 bg-slate-100 flex items-center justify-center">
+            <div className="w-full aspect-square rounded-[0.6em] overflow-hidden shadow-2xl mb-8 border-4 border-white/40 bg-slate-100 flex items-center justify-center">
               {!imageError ? (
                 <img 
                   src="https://joshuaehimare.com/wp-content/uploads/2025/12/WhatsApp-Image-2025-12-29-at-19.59.20.jpeg" 
@@ -121,7 +148,7 @@ const App: React.FC = () => {
                 />
               ) : (
                 <div className="flex flex-col items-center p-8 text-center space-y-4">
-                  <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center text-slate-400">
+                  <div className="w-20 h-20 bg-slate-200 rounded-[0.6em] flex items-center justify-center text-slate-400">
                     <i className="fa-solid fa-image-slash text-3xl"></i>
                   </div>
                   <div>
@@ -134,13 +161,13 @@ const App: React.FC = () => {
             <AttendanceForm onSuccess={handleSuccess} />
           </div>
         ) : (
-          <div className="bg-white p-12 rounded-3xl shadow-2xl border border-white max-w-[500px] w-full mx-auto text-center animate-bounce-in relative overflow-hidden">
+          <div className="bg-white p-12 rounded-[0.6em] shadow-2xl border border-white max-w-[500px] w-full mx-auto text-center animate-bounce-in relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#5C6BC0] to-indigo-300"></div>
             <div className="w-24 h-24 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner ring-8 ring-green-50/50">
               <i className="fa-solid fa-check text-4xl"></i>
             </div>
             <h2 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">Check-in Complete!</h2>
-            <div className="mb-10 p-8 bg-slate-50 rounded-2xl border border-slate-100 relative min-h-[140px] flex flex-col items-center justify-center">
+            <div className="mb-10 p-8 bg-slate-50 rounded-[0.6em] border border-slate-100 relative min-h-[140px] flex flex-col items-center justify-center">
               <i className="fa-solid fa-quote-left absolute top-4 left-4 text-slate-200 text-xl"></i>
               {!aiMessage ? (
                 <div className="flex flex-col items-center gap-3">
@@ -158,7 +185,7 @@ const App: React.FC = () => {
                 </>
               )}
             </div>
-            <button onClick={handleReset} className="w-full py-4 px-6 bg-[#5C6BC0] text-white rounded-xl font-bold hover:bg-[#4E5BA6] transition-all shadow-lg active:scale-95 text-base uppercase tracking-widest">
+            <button onClick={handleReset} className="w-full py-4 px-6 bg-[#5C6BC0] text-white rounded-[0.6em] font-bold hover:bg-[#4E5BA6] transition-all shadow-lg active:scale-95 text-base uppercase tracking-widest">
               Return to Home
             </button>
           </div>

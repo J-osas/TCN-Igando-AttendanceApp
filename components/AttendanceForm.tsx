@@ -13,10 +13,10 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
     lastName: '',
     phone: '',
     email: '',
-    category: 'First Timer/Guest', // Default updated to the first requested option
-    sex: 'Female',
-    location: 'Igando',
-    ageRange: '27-36',
+    category: '' as Category, // Updated to empty to show placeholder
+    sex: '' as Sex,           // Updated to empty to show placeholder
+    location: 'Igando',       // Keeping existing default
+    ageRange: '' as AgeRange,  // Updated to empty to show placeholder
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -36,6 +36,11 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
     }
 
     if (!formData.phone.trim()) newErrors.phone = 'Required';
+    
+    // Minimal update to ensure "must actively select" requirement is met
+    if (!formData.sex) newErrors.sex = 'Required';
+    if (!formData.ageRange) newErrors.ageRange = 'Required';
+    if (!formData.category) newErrors.category = 'Required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -104,7 +109,7 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
     }
   };
 
-  const SelectField = ({ label, name, value, options, icon }: { label: string, name: string, value: string, options: string[], icon: string }) => (
+  const SelectField = ({ label, name, value, options, icon, placeholder, error }: { label: string, name: string, value: string, options: string[], icon: string, placeholder?: string, error?: string }) => (
     <div className="space-y-2">
       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{label}</label>
       <div className="relative">
@@ -112,8 +117,10 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
           name={name}
           value={value}
           onChange={handleChange}
-          className="w-full px-4 py-4 rounded-xl bg-[#F3E8FF] text-slate-700 outline-none appearance-none font-bold border-none cursor-pointer pr-10"
+          required
+          className={`w-full px-4 py-4 rounded-xl bg-[#F3E8FF] text-slate-700 outline-none appearance-none font-bold border-none cursor-pointer pr-10 transition-all ${error ? 'ring-2 ring-red-300' : ''}`}
         >
+          {placeholder && <option value="" disabled hidden>{placeholder}</option>}
           {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </select>
         <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-indigo-400">
@@ -189,6 +196,8 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
               value={formData.sex} 
               options={['Male', 'Female']} 
               icon="fa-venus-mars" 
+              placeholder="Choose one"
+              error={errors.sex}
             />
             <SelectField 
               label="Age Range" 
@@ -196,6 +205,8 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
               value={formData.ageRange} 
               options={['under 19', '19-26', '27-36', '37-45', '46-55', '55 and above']} 
               icon="fa-calendar-days" 
+              placeholder="Select age range"
+              error={errors.ageRange}
             />
           </div>
 
@@ -206,6 +217,8 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
               value={formData.category} 
               options={['First Timer/Guest', 'Revisiting/Returning Member', 'Member']} 
               icon="fa-users" 
+              placeholder="Choose one"
+              error={errors.category}
             />
             <SelectField 
               label="Location" 
