@@ -97,9 +97,9 @@ const App: React.FC = () => {
           <div className="flex items-center group cursor-pointer transition-transform hover:scale-105 active:scale-95" onClick={() => setView('form')}>
             <div className="h-12 md:h-20 flex items-center justify-center">
                <img 
-                 src="/src/assets/tcnlogo.png" 
+                 src="/tcnlogo.png" 
                  alt="TCN Logo" 
-                 className="h-12 md:h-20 w-auto object-contain" 
+                 className="h-12 md:h-20 w-auto object-contain brightness-0 invert" 
                />
             </div>
           </div>
@@ -143,7 +143,7 @@ const App: React.FC = () => {
             <div className="w-full rounded-[0.6em] overflow-hidden shadow-2xl mb-8 border-4 border-white/40 bg-slate-100 flex items-center justify-center">
               {!imageError ? (
                 <img 
-                  src="/src/assets/flyer.jpeg" 
+                  src="/flyer.jpeg" 
                   alt="Event Flyer" 
                   className="w-full h-auto object-contain"
                   onError={() => setImageError(true)}
