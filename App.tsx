@@ -97,9 +97,9 @@ const App: React.FC = () => {
           <div className="flex items-center group cursor-pointer transition-transform hover:scale-105 active:scale-95" onClick={() => setView('form')}>
             <div className="h-12 md:h-20 flex items-center justify-center">
                <img 
-                 src="https://joshuaehimare.com/wp-content/uploads/2025/12/igando.png" 
-                 alt="TCN Igando Logo" 
-                 className="h-full w-auto object-contain" 
+                 src="/src/assets/tcnlogo.png" 
+                 alt="TCN Logo" 
+                 className="h-12 md:h-20 w-auto object-contain" 
                />
             </div>
           </div>
@@ -139,13 +139,13 @@ const App: React.FC = () => {
         {view === 'admin' ? (
           <AdminDashboard />
         ) : !submitted ? (
-          <div className="flex flex-col items-center w-full max-w-[600px] animate-fade-in">
-            <div className="w-full aspect-square rounded-[0.6em] overflow-hidden shadow-2xl mb-8 border-4 border-white/40 bg-slate-100 flex items-center justify-center">
+          <div className="flex flex-col items-center w-full max-w-2xl animate-fade-in">
+            <div className="w-full rounded-[0.6em] overflow-hidden shadow-2xl mb-8 border-4 border-white/40 bg-slate-100 flex items-center justify-center">
               {!imageError ? (
                 <img 
-                  src="https://joshuaehimare.com/wp-content/uploads/2025/12/WhatsApp-Image-2025-12-29-at-19.59.20.jpeg" 
-                  alt="TCN Igando Crossover 2026 Flyer" 
-                  className="w-full h-full object-cover"
+                  src="/src/assets/flyer.jpeg" 
+                  alt="Event Flyer" 
+                  className="w-full h-auto object-contain"
                   onError={() => setImageError(true)}
                 />
               ) : (

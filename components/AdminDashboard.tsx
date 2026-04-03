@@ -265,12 +265,12 @@ const AdminDashboard: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="w-[96%] md:w-full max-w-md bg-white rounded-[0.6em] shadow-2xl p-6 md:p-10 text-center relative overflow-hidden border border-white/60 mx-auto mt-12 md:mt-20">
-        <div className="absolute top-0 left-0 w-full h-1.5 md:h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-        <div className="w-16 h-16 md:w-24 md:h-24 bg-indigo-50 text-indigo-600 rounded-[0.6em] flex items-center justify-center mx-auto mb-6 md:mb-8 rotate-6 shadow-xl border-4 border-white">
+      <div className="w-[96%] md:w-full max-w-md bg-slate-900 rounded-[0.6em] shadow-2xl p-6 md:p-10 text-center relative overflow-hidden border border-white/10 mx-auto mt-12 md:mt-20">
+        <div className="absolute top-0 left-0 w-full h-1.5 md:h-2 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500"></div>
+        <div className="w-16 h-16 md:w-24 md:h-24 bg-amber-500/10 text-amber-500 rounded-[0.6em] flex items-center justify-center mx-auto mb-6 md:mb-8 rotate-6 shadow-xl border-4 border-white/10">
           <i className="fa-solid fa-vault text-2xl md:text-4xl"></i>
         </div>
-        <h2 className="text-xl md:text-3xl font-black text-slate-800 mb-1 md:mb-2 tracking-tighter">Command Center</h2>
+        <h2 className="text-xl md:text-3xl font-black text-white mb-1 md:mb-2 tracking-tighter">Command Center</h2>
         <p className="text-slate-400 font-medium mb-6 md:mb-10 text-xs md:text-sm">Enter the system clearance password</p>
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="relative">
@@ -279,11 +279,11 @@ const AdminDashboard: React.FC = () => {
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
               placeholder="••••••••"
-              className={`w-full px-4 md:px-8 py-4 md:py-5 rounded-[0.6em] bg-slate-50 text-slate-700 outline-none focus:ring-4 focus:ring-indigo-100 font-black text-center tracking-[0.3em] md:tracking-[0.5em] text-lg md:text-xl transition-all ${authError ? 'ring-4 ring-red-100 border-red-200' : 'border-slate-100'}`}
+              className={`w-full px-4 md:px-8 py-4 md:py-5 rounded-[0.6em] bg-white/5 text-white outline-none focus:ring-4 focus:ring-amber-500/20 font-black text-center tracking-[0.3em] md:tracking-[0.5em] text-lg md:text-xl transition-all ${authError ? 'ring-4 ring-red-500/20 border-red-500/50' : 'border-white/10'}`}
             />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-indigo-500"><i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i></button>
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 text-slate-500 hover:text-amber-500 transition-colors"><i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i></button>
           </div>
-          <button type="submit" className="w-full py-4 md:py-5 bg-[#5C6BC0] text-white rounded-[0.6em] font-black uppercase tracking-widest shadow-xl transition-all hover:bg-indigo-700 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 text-xs md:text-base">
+          <button type="submit" className="w-full py-4 md:py-5 bg-[#F59E0B] text-slate-900 rounded-[0.6em] font-black uppercase tracking-widest shadow-xl transition-all hover:bg-amber-600 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 text-xs md:text-base">
             <i className="fa-solid fa-fingerprint text-lg md:text-xl"></i> Verify Identity
           </button>
         </form>
@@ -294,35 +294,35 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="w-[96%] md:w-full max-w-7xl relative px-2 md:px-4 pb-20 mx-auto">
       {toast && (
-        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[110] px-4 md:px-8 py-3 md:py-4 bg-white/90 backdrop-blur-md rounded-[0.6em] shadow-xl border border-white flex items-center gap-3 animate-bounce-in">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${toast.type === 'success' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[110] px-4 md:px-8 py-3 md:py-4 bg-slate-900/90 backdrop-blur-md rounded-[0.6em] shadow-xl border border-white/10 flex items-center gap-3 animate-bounce-in">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${toast.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
             <i className={`fa-solid ${toast.type === 'success' ? 'fa-check' : 'fa-xmark'}`}></i>
           </div>
-          <span className="text-[10px] md:text-sm font-black text-slate-800 uppercase tracking-widest">{toast.message}</span>
+          <span className="text-[10px] md:text-sm font-black text-white uppercase tracking-widest">{toast.message}</span>
         </div>
       )}
 
       {/* Modals for Export and Clear */}
       {showExportModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center px-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-xl p-6 bg-white rounded-[0.6em] shadow-2xl border border-white max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center px-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-xl p-6 bg-slate-900 rounded-[0.6em] shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto">
              <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl md:text-3xl font-black text-slate-900">Export Filter</h3>
-              <button onClick={() => setShowExportModal(false)} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400"><i className="fa-solid fa-xmark"></i></button>
+              <h3 className="text-xl md:text-3xl font-black text-white">Export Filter</h3>
+              <button onClick={() => setShowExportModal(false)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors"><i className="fa-solid fa-xmark"></i></button>
             </div>
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input type="date" value={exportStartDate} onChange={(e) => setExportStartDate(e.target.value)} className="w-full px-5 py-4 bg-slate-50 rounded-[0.6em] border border-slate-100 font-bold text-slate-600" />
-                <input type="date" value={exportEndDate} onChange={(e) => setExportEndDate(e.target.value)} className="w-full px-5 py-4 bg-slate-50 rounded-[0.6em] border border-slate-100 font-bold text-slate-600" />
+                <input type="date" value={exportStartDate} onChange={(e) => setExportStartDate(e.target.value)} className="w-full px-5 py-4 bg-white/5 rounded-[0.6em] border border-white/10 font-bold text-white outline-none focus:ring-2 focus:ring-amber-500/50" />
+                <input type="date" value={exportEndDate} onChange={(e) => setExportEndDate(e.target.value)} className="w-full px-5 py-4 bg-white/5 rounded-[0.6em] border border-white/10 font-bold text-white outline-none focus:ring-2 focus:ring-amber-500/50" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <select value={exportSex} onChange={(e) => setExportSex(e.target.value)} className="w-full px-4 py-3 bg-slate-50 rounded-[0.6em] border border-slate-100 font-bold text-slate-600"><option value="All">All Genders</option><option value="Male">Male</option><option value="Female">Female</option></select>
-                <select value={exportCategory} onChange={(e) => setExportCategory(e.target.value)} className="w-full px-4 py-3 bg-slate-50 rounded-[0.6em] border border-slate-100 font-bold text-slate-600"><option value="All">All Categories</option><option value="First Timer/Guest">First Timer</option><option value="Revisiting/Returning Member">Returning</option><option value="Member">Member</option></select>
-                <select value={exportAge} onChange={(e) => setExportAge(e.target.value)} className="w-full px-4 py-3 bg-slate-50 rounded-[0.6em] border border-slate-100 font-bold text-slate-600"><option value="All">All Ages</option><option value="under 19">under 19</option><option value="19-26">19-26</option><option value="27-36">27-36</option><option value="37-45">37-45</option><option value="46-55">46-55</option><option value="55 and above">55 and above</option></select>
+                <select value={exportSex} onChange={(e) => setExportSex(e.target.value)} className="w-full px-4 py-3 bg-white/5 rounded-[0.6em] border border-white/10 font-bold text-white outline-none focus:ring-2 focus:ring-amber-500/50"><option value="All" className="bg-slate-900">All Genders</option><option value="Male" className="bg-slate-900">Male</option><option value="Female" className="bg-slate-900">Female</option></select>
+                <select value={exportCategory} onChange={(e) => setExportCategory(e.target.value)} className="w-full px-4 py-3 bg-white/5 rounded-[0.6em] border border-white/10 font-bold text-white outline-none focus:ring-2 focus:ring-amber-500/50"><option value="All" className="bg-slate-900">All Categories</option><option value="First Timer/Guest" className="bg-slate-900">First Timer</option><option value="Revisiting/Returning Member" className="bg-slate-900">Returning</option><option value="Member" className="bg-slate-900">Member</option></select>
+                <select value={exportAge} onChange={(e) => setExportAge(e.target.value)} className="w-full px-4 py-3 bg-white/5 rounded-[0.6em] border border-white/10 font-bold text-white outline-none focus:ring-2 focus:ring-amber-500/50"><option value="All" className="bg-slate-900">All Ages</option><option value="under 19" className="bg-slate-900">under 19</option><option value="19-26" className="bg-slate-900">19-26</option><option value="27-36" className="bg-slate-900">27-36</option><option value="37-45" className="bg-slate-900">37-45</option><option value="46-55" className="bg-slate-900">46-55</option><option value="55 and above" className="bg-slate-900">55 and above</option></select>
               </div>
               <div className="pt-8 flex gap-3">
-                <button onClick={() => setShowExportModal(false)} className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-[0.6em] font-black uppercase">Cancel</button>
-                <button onClick={downloadCSV} className="flex-[2] py-4 bg-indigo-600 text-white rounded-[0.6em] font-black uppercase shadow-xl shadow-indigo-100"><i className="fa-solid fa-file-csv mr-2"></i> Download CSV</button>
+                <button onClick={() => setShowExportModal(false)} className="flex-1 py-4 bg-white/5 text-slate-400 rounded-[0.6em] font-black uppercase hover:bg-white/10 transition-colors">Cancel</button>
+                <button onClick={downloadCSV} className="flex-[2] py-4 bg-amber-500 text-slate-900 rounded-[0.6em] font-black uppercase shadow-xl shadow-amber-500/20 hover:bg-amber-600 transition-all"><i className="fa-solid fa-file-csv mr-2"></i> Download CSV</button>
               </div>
             </div>
           </div>
@@ -330,14 +330,14 @@ const AdminDashboard: React.FC = () => {
       )}
 
       {showClearModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center px-4 bg-slate-900/40 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-md p-8 bg-white rounded-[0.6em] shadow-2xl border border-white text-center">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center px-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md p-8 bg-slate-900 rounded-[0.6em] shadow-2xl border border-white/10 text-center">
             <i className="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i>
-            <h3 className="text-2xl font-black text-slate-900">System Purge</h3>
+            <h3 className="text-2xl font-black text-white">System Purge</h3>
             <p className="text-slate-400 text-xs font-bold mt-2 uppercase">Permanently delete {attendees.length} records?</p>
-            <input type="text" value={confirmDeleteText} onChange={(e) => setConfirmDeleteText(e.target.value)} placeholder='Type "DELETE"' className="w-full mt-6 px-5 py-4 bg-slate-50 rounded-[0.6em] border-2 border-slate-100 font-black text-center" />
+            <input type="text" value={confirmDeleteText} onChange={(e) => setConfirmDeleteText(e.target.value)} placeholder='Type "DELETE"' className="w-full mt-6 px-5 py-4 bg-white/5 rounded-[0.6em] border border-white/10 font-black text-center text-white outline-none focus:ring-2 focus:ring-red-500/50" />
             <div className="flex gap-3 mt-6">
-              <button onClick={() => { setShowClearModal(false); setConfirmDeleteText(''); }} className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-[0.6em] font-black uppercase">Abort</button>
+              <button onClick={() => { setShowClearModal(false); setConfirmDeleteText(''); }} className="flex-1 py-4 bg-white/5 text-slate-400 rounded-[0.6em] font-black uppercase hover:bg-white/10 transition-colors">Abort</button>
               <button disabled={confirmDeleteText.toUpperCase() !== 'DELETE'} onClick={handleClearAllData} className="flex-[2] py-4 bg-red-500 text-white rounded-[0.6em] font-black uppercase disabled:opacity-30">Confirm Purge</button>
             </div>
           </div>
@@ -348,16 +348,16 @@ const AdminDashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <span className="px-3 py-1 bg-indigo-100 text-indigo-600 rounded-full text-[10px] font-black uppercase animate-pulse">Live Feed</span>
-            <p className="text-slate-400 text-xs font-bold">Synced: {lastUpdated.toLocaleTimeString()}</p>
+            <span className="px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-[10px] font-black uppercase animate-pulse">Live Feed</span>
+            <p className="text-slate-500 text-xs font-bold">Synced: {lastUpdated.toLocaleTimeString()}</p>
           </div>
-          <h2 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter">Admin <span className="text-indigo-600">Area</span></h2>
+          <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter">Admin <span className="text-amber-500">Area</span></h2>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
           <button 
             onClick={handleOpenExport} 
             disabled={exporting || attendees.length === 0} 
-            className="flex-1 md:w-auto px-8 py-4 bg-slate-900 text-white rounded-[0.6em] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl flex items-center justify-center gap-2 whitespace-nowrap"
+            className="flex-1 md:w-auto px-8 py-4 bg-amber-500 text-slate-900 rounded-[0.6em] font-black uppercase tracking-widest hover:bg-amber-600 transition-all shadow-xl flex items-center justify-center gap-2 whitespace-nowrap"
           >
             <i className="fa-solid fa-cloud-arrow-down"></i>
             <span>Export</span>
@@ -375,36 +375,36 @@ const AdminDashboard: React.FC = () => {
 
       {/* QR Hub & Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-        <div className="lg:col-span-1 bg-white p-8 rounded-[0.6em] shadow-xl border border-white flex flex-col items-center justify-center text-center">
-           <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-[0.6em] flex items-center justify-center mb-4">
+        <div className="lg:col-span-1 bg-slate-900 p-8 rounded-[0.6em] shadow-xl border border-white/10 flex flex-col items-center justify-center text-center">
+           <div className="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-[0.6em] flex items-center justify-center mb-4">
               <i className="fa-solid fa-qrcode text-2xl"></i>
            </div>
-           <h3 className="text-xl font-black text-slate-800 tracking-tight mb-2">Check-in QR</h3>
+           <h3 className="text-xl font-black text-white tracking-tight mb-2">Check-in QR</h3>
            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6 leading-relaxed">Scan to access the registration portal</p>
            
-           <div className="p-4 bg-slate-50 rounded-[0.6em] border-2 border-dashed border-slate-200 mb-6 group cursor-pointer relative overflow-hidden transition-all hover:bg-white hover:border-indigo-200">
+           <div className="p-4 bg-white rounded-[0.6em] border-2 border-dashed border-slate-700 mb-6 group cursor-pointer relative overflow-hidden transition-all hover:border-amber-500/50">
               <img 
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/?src=qr')}`} 
                 alt="Registration QR" 
                 className="w-32 h-32 md:w-40 md:h-40 relative z-10"
               />
-              <div className="absolute inset-0 bg-indigo-600/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                 <i className="fa-solid fa-magnifying-glass-plus text-indigo-600/20 text-4xl"></i>
+              <div className="absolute inset-0 bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                 <i className="fa-solid fa-magnifying-glass-plus text-amber-500/20 text-4xl"></i>
               </div>
            </div>
 
            <div className="flex gap-2 w-full">
-              <button onClick={() => handleDownloadQR('png')} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-[0.6em] font-black uppercase text-[10px] hover:bg-slate-200 transition-colors">PNG</button>
-              <button onClick={() => handleDownloadQR('svg')} className="flex-1 py-3 bg-slate-900 text-white rounded-[0.6em] font-black uppercase text-[10px] hover:bg-indigo-600 transition-colors">SVG</button>
+              <button onClick={() => handleDownloadQR('png')} className="flex-1 py-3 bg-white/5 text-slate-400 rounded-[0.6em] font-black uppercase text-[10px] hover:bg-white/10 transition-colors">PNG</button>
+              <button onClick={() => handleDownloadQR('svg')} className="flex-1 py-3 bg-amber-500 text-slate-900 rounded-[0.6em] font-black uppercase text-[10px] hover:bg-amber-600 transition-colors">SVG</button>
            </div>
         </div>
 
         <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-           <div className="bg-indigo-600 p-8 rounded-[0.6em] shadow-xl relative overflow-hidden text-white group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 -mr-12 -mt-12 rounded-full blur-3xl transition-transform group-hover:scale-110"></div>
+           <div className="bg-amber-500 p-8 rounded-[0.6em] shadow-xl relative overflow-hidden text-slate-900 group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 -mr-12 -mt-12 rounded-full blur-3xl transition-transform group-hover:scale-110"></div>
               <div className="flex justify-between items-start mb-8">
                  <div>
-                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-1">Total QR Interactions</p>
+                    <p className="text-[10px] font-black text-slate-900/60 uppercase tracking-widest mb-1">Total QR Interactions</p>
                     <h4 className="text-5xl font-black tracking-tighter">{stats.qrTotal.toLocaleString()}</h4>
                  </div>
                  <div className="w-12 h-12 bg-white/20 rounded-[0.6em] flex items-center justify-center backdrop-blur-md">
@@ -412,143 +412,143 @@ const AdminDashboard: React.FC = () => {
                  </div>
               </div>
               <div className="space-y-4">
-                 <div className="flex justify-between items-end border-b border-indigo-400/30 pb-4">
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-80">Device Health</span>
+                 <div className="flex justify-between items-end border-b border-slate-900/10 pb-4">
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Device Health</span>
                     <span className="text-xs font-black">Live Pulse</span>
                  </div>
                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                       <p className="text-[9px] font-black uppercase opacity-60">Mobile</p>
+                       <p className="text-[9px] font-black uppercase opacity-40">Mobile</p>
                        <p className="text-xl font-black">{stats.qrMobile.toLocaleString()}</p>
                     </div>
                     <div>
-                       <p className="text-[9px] font-black uppercase opacity-60">Desktop</p>
+                       <p className="text-[9px] font-black uppercase opacity-40">Desktop</p>
                        <p className="text-xl font-black">{stats.qrDesktop.toLocaleString()}</p>
                     </div>
                  </div>
               </div>
            </div>
 
-           <div className="bg-white p-8 rounded-[0.6em] shadow-xl border border-white flex flex-col">
+           <div className="bg-slate-900 p-8 rounded-[0.6em] shadow-xl border border-white/10 flex flex-col">
               <div className="flex items-center gap-3 mb-6">
-                 <div className="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-[0.6em] flex items-center justify-center"><i className="fa-solid fa-chart-simple"></i></div>
-                 <h4 className="font-black text-slate-800 uppercase tracking-widest text-[11px]">Usage Metrics</h4>
+                 <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-[0.6em] flex items-center justify-center"><i className="fa-solid fa-chart-simple"></i></div>
+                 <h4 className="font-black text-white uppercase tracking-widest text-[11px]">Usage Metrics</h4>
               </div>
               <div className="space-y-6 flex-1">
                  <div>
                     <div className="flex justify-between mb-2">
-                       <span className="text-[9px] font-black text-slate-400 uppercase">Mobile Engagement</span>
-                       <span className="text-[10px] font-black text-indigo-600">{stats.qrTotal ? Math.round((stats.qrMobile / stats.qrTotal) * 100) : 0}%</span>
+                       <span className="text-[9px] font-black text-slate-500 uppercase">Mobile Engagement</span>
+                       <span className="text-[10px] font-black text-amber-500">{stats.qrTotal ? Math.round((stats.qrMobile / stats.qrTotal) * 100) : 0}%</span>
                     </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                       <div className="h-full bg-indigo-500 transition-all duration-1000" style={{ width: `${stats.qrTotal ? (stats.qrMobile / stats.qrTotal) * 100 : 0}%` }}></div>
+                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                       <div className="h-full bg-amber-500 transition-all duration-1000" style={{ width: `${stats.qrTotal ? (stats.qrMobile / stats.qrTotal) * 100 : 0}%` }}></div>
                     </div>
                  </div>
                  <div>
                     <div className="flex justify-between mb-2">
-                       <span className="text-[9px] font-black text-slate-400 uppercase">Desktop Engagement</span>
-                       <span className="text-[10px] font-black text-slate-600">{stats.qrTotal ? Math.round((stats.qrDesktop / stats.qrTotal) * 100) : 0}%</span>
+                       <span className="text-[9px] font-black text-slate-500 uppercase">Desktop Engagement</span>
+                       <span className="text-[10px] font-black text-slate-400">{stats.qrTotal ? Math.round((stats.qrDesktop / stats.qrTotal) * 100) : 0}%</span>
                     </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                       <div className="h-full bg-slate-400 transition-all duration-1000" style={{ width: `${stats.qrTotal ? (stats.qrDesktop / stats.qrTotal) * 100 : 0}%` }}></div>
+                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                       <div className="h-full bg-slate-600 transition-all duration-1000" style={{ width: `${stats.qrTotal ? (stats.qrDesktop / stats.qrTotal) * 100 : 0}%` }}></div>
                     </div>
                  </div>
               </div>
-              <div className="mt-8 pt-4 border-t border-slate-50 flex justify-center">
-                 <p className="text-[8px] font-black text-slate-300 uppercase tracking-[0.3em]">Real-time Scan Telemetry</p>
+              <div className="mt-8 pt-4 border-t border-white/5 flex justify-center">
+                 <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em]">Real-time Scan Telemetry</p>
               </div>
            </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-12">
-        <StatCard title="Total Registry" count={stats.total} colorClass="text-indigo-500" icon="fa-chart-pie" bgGradient="bg-indigo-500" />
+        <StatCard title="Total Registry" count={stats.total} colorClass="text-amber-500" icon="fa-chart-pie" bgGradient="bg-amber-500" />
         <StatCard title="First-Time Guests" count={stats.guests} colorClass="text-orange-500" icon="fa-fire" bgGradient="bg-orange-500" />
-        <StatCard title="Returning Members" count={stats.returning} colorClass="text-purple-500" icon="fa-heart" bgGradient="bg-purple-500" />
+        <StatCard title="Returning Members" count={stats.returning} colorClass="text-yellow-500" icon="fa-heart" bgGradient="bg-yellow-500" />
         <StatCard title="Active Members" count={stats.members} colorClass="text-emerald-500" icon="fa-id-badge" bgGradient="bg-emerald-500" />
         <StatCard title="Total QR Scans" count={stats.qrTotal} colorClass="text-blue-500" icon="fa-bolt" bgGradient="bg-blue-500" />
       </div>
 
-      <div className="bg-white/70 backdrop-blur-xl rounded-[0.6em] shadow-xl p-4 md:p-8 border border-white">
+      <div className="bg-slate-900/50 backdrop-blur-xl rounded-[0.6em] shadow-xl p-4 md:p-8 border border-white/10">
         <div className="flex flex-col lg:flex-row gap-4 mb-10">
           <div className="flex-1 relative group">
-             <i className="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors"></i>
-             <input type="text" placeholder="Search by name, email or phone..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-16 pr-8 py-5 rounded-[0.6em] bg-slate-100/50 border-2 border-transparent outline-none font-bold text-slate-800 focus:bg-white focus:border-indigo-100 shadow-inner transition-all" />
+             <i className="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-amber-500 transition-colors"></i>
+             <input type="text" placeholder="Search by name, email or phone..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-16 pr-8 py-5 rounded-[0.6em] bg-white/5 border-2 border-transparent outline-none font-bold text-white focus:bg-slate-900 focus:border-amber-500/30 shadow-inner transition-all" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:w-2/3">
              {[
-               { value: filterSex, setter: setFilterSex, options: ['All Sex', 'Male', 'Female'], icon: 'fa-venus-mars' },
-               { value: filterAge, setter: setFilterAge, options: ['All Ages', 'under 19', '19-26', '27-36', '37-45', '46-55', '55 and above'], icon: 'fa-cake-candles' },
-               { value: filterCategory, setter: setFilterCategory, options: ['All Categories', 'First Timer/Guest', 'Revisiting/Returning Member', 'Member'], icon: 'fa-layer-group' },
-               { value: filterLocation, setter: setFilterLocation, options: ['All Locations', 'OJO', 'IBA', 'AGBARA', 'IGANDO', 'AKESAN', 'IYANA-IPAJA', 'IKOTUN', 'IJEGUN', 'OKE-ODO', 'AYOBO-IPAJA', 'EGBEDA/AKOWONJO', 'IYANA ERA', 'AMUWO ODOFIN'], icon: 'fa-map-pin' }
+                { value: filterSex, setter: setFilterSex, options: ['All Sex', 'Male', 'Female'], icon: 'fa-venus-mars' },
+                { value: filterAge, setter: setFilterAge, options: ['All Ages', 'under 19', '19-26', '27-36', '37-45', '46-55', '55 and above'], icon: 'fa-cake-candles' },
+                { value: filterCategory, setter: setFilterCategory, options: ['All Categories', 'First Timer/Guest', 'Revisiting/Returning Member', 'Member'], icon: 'fa-layer-group' },
+                { value: filterLocation, setter: setFilterLocation, options: ['All Locations', 'OJO', 'IBA', 'AGBARA', 'IGANDO', 'AKESAN', 'IYANA-IPAJA', 'IKOTUN', 'IJEGUN', 'OKE-ODO', 'AYOBO-IPAJA', 'EGBEDA/AKOWONJO', 'IYANA ERA', 'AMUWO ODOFIN'], icon: 'fa-map-pin' }
              ].map((f, i) => (
-               <div key={i} className="relative"><select value={f.value} onChange={(e) => f.setter(e.target.value)} className="w-full pl-10 pr-4 py-4 rounded-[0.6em] bg-white border-2 border-slate-100 outline-none font-bold text-slate-600 text-[10px] appearance-none cursor-pointer hover:border-indigo-100">{f.options.map(o => <option key={o} value={o === f.options[0] ? 'All' : o}>{o}</option>)}</select><i className={`fa-solid ${f.icon} absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-[10px]`}></i></div>
+               <div key={i} className="relative"><select value={f.value} onChange={(e) => f.setter(e.target.value)} className="w-full pl-10 pr-4 py-4 rounded-[0.6em] bg-white/5 border-2 border-white/10 outline-none font-bold text-slate-400 text-[10px] appearance-none cursor-pointer hover:border-amber-500/30 transition-colors">{f.options.map(o => <option key={o} value={o === f.options[0] ? 'All' : o} className="bg-slate-900">{o}</option>)}</select><i className={`fa-solid ${f.icon} absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-[10px]`}></i></div>
              ))}
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-[0.6em] border border-slate-100 bg-white shadow-inner">
+        <div className="overflow-x-auto rounded-[0.6em] border border-white/10 bg-slate-900 shadow-inner">
           <table className="w-full text-left border-collapse min-w-[1200px]">
             <thead>
-              <tr className="bg-slate-900 text-white">
-                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50">Attendee Name</th>
-                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50">Email Address</th>
-                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50">Phone Number</th>
-                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50 text-center">Demographics</th>
-                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50 whitespace-nowrap">Category</th>
-                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-slate-800/50 whitespace-nowrap">Location</th>
+              <tr className="bg-slate-950 text-white">
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-white/5">Attendee Name</th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-white/5">Email Address</th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-white/5">Phone Number</th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-white/5 text-center">Demographics</th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-white/5 whitespace-nowrap">Category</th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] border-r border-white/5 whitespace-nowrap">Location</th>
                 <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.15em] text-right">Registration Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/5">
               {!loading && filteredAttendees.map((a) => (
-                <tr key={a.id} className="group hover:bg-indigo-50/40 transition-all duration-200">
-                  <td className="px-6 py-5 border-r border-slate-50/50">
+                <tr key={a.id} className="group hover:bg-amber-500/5 transition-all duration-200">
+                  <td className="px-6 py-5 border-r border-white/5">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-[0.6em] bg-indigo-50 text-indigo-400 flex items-center justify-center font-black text-xs group-hover:bg-white transition-colors">
+                      <div className="w-9 h-9 rounded-[0.6em] bg-white/5 text-amber-500 flex items-center justify-center font-black text-xs group-hover:bg-white/10 transition-colors">
                         {a.firstName?.[0]}{a.lastName?.[0]}
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900 capitalize text-sm">{a.firstName} {a.lastName}</p>
-                        <p className="text-[9px] font-black text-slate-300 uppercase">{a.sex}</p>
+                        <p className="font-bold text-white capitalize text-sm">{a.firstName} {a.lastName}</p>
+                        <p className="text-[9px] font-black text-slate-500 uppercase">{a.sex}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-5 border-r border-slate-50/50">
-                    <p className="text-sm font-medium text-slate-600 truncate max-w-[200px]">{a.email}</p>
+                  <td className="px-6 py-5 border-r border-white/5">
+                    <p className="text-sm font-medium text-slate-400 truncate max-w-[200px]">{a.email}</p>
                   </td>
-                  <td className="px-6 py-5 border-r border-slate-50/50">
-                    <p className="text-sm font-mono font-bold text-indigo-400">{a.phone}</p>
+                  <td className="px-6 py-5 border-r border-white/5">
+                    <p className="text-sm font-mono font-bold text-amber-500/80">{a.phone}</p>
                   </td>
-                  <td className="px-6 py-5 border-r border-slate-50/50 text-center">
-                    <span className="inline-block px-3 py-1 bg-slate-50 text-slate-500 rounded-[0.6em] text-[10px] font-black uppercase group-hover:bg-white">
+                  <td className="px-6 py-5 border-r border-white/5 text-center">
+                    <span className="inline-block px-3 py-1 bg-white/5 text-slate-400 rounded-[0.6em] text-[10px] font-black uppercase group-hover:bg-white/10">
                       {a.ageRange}
                     </span>
                   </td>
-                  <td className="px-6 py-5 border-r border-slate-50/50">
+                  <td className="px-6 py-5 border-r border-white/5">
                     <span className={`whitespace-nowrap px-3 py-1 rounded-[0.6em] text-[9px] font-black uppercase tracking-wider border shadow-sm ${
-                      a.category === 'Member' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 
-                      a.category === 'First Timer/Guest' ? 'bg-orange-50 text-orange-700 border-orange-100' : 
-                      'bg-purple-50 text-purple-700 border-purple-100'
+                      a.category === 'Member' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
+                      a.category === 'First Timer/Guest' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : 
+                      'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
                     }`}>
                       {a.category}
                     </span>
                   </td>
-                  <td className="px-6 py-5 border-r border-slate-50/50">
-                    <p className="text-sm font-bold text-slate-600 whitespace-nowrap truncate max-w-[180px]">{a.location}</p>
+                  <td className="px-6 py-5 border-r border-white/5">
+                    <p className="text-sm font-bold text-slate-400 whitespace-nowrap truncate max-w-[180px]">{a.location}</p>
                   </td>
                   <td className="px-6 py-5 text-right">
-                    <p className="text-[11px] font-black text-slate-800">
+                    <p className="text-[11px] font-black text-white">
                       {a.createdAt?.toDate ? a.createdAt.toDate().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '--'}
                     </p>
-                    <p className="text-[10px] font-medium text-slate-400">
+                    <p className="text-[10px] font-medium text-slate-500">
                       {a.createdAt?.toDate ? a.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                     </p>
                   </td>
                 </tr>
               ))}
-              {loading && <tr><td colSpan={7} className="py-48 text-center"><div className="flex flex-col items-center gap-6"><div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div><p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Refreshing Registry...</p></div></td></tr>}
-              {!loading && filteredAttendees.length === 0 && <tr><td colSpan={7} className="py-48 text-center text-slate-300 text-xl font-black uppercase">Zero Records Found</td></tr>}
+              {loading && <tr><td colSpan={7} className="py-48 text-center"><div className="flex flex-col items-center gap-6"><div className="w-16 h-16 border-4 border-white/5 border-t-amber-500 rounded-full animate-spin"></div><p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Refreshing Registry...</p></div></td></tr>}
+              {!loading && filteredAttendees.length === 0 && <tr><td colSpan={7} className="py-48 text-center text-slate-600 text-xl font-black uppercase">Zero Records Found</td></tr>}
             </tbody>
           </table>
         </div>

@@ -118,12 +118,12 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
           value={value}
           onChange={handleChange}
           required
-          className={`w-full px-4 py-4 rounded-xl bg-[#F3E8FF] text-slate-700 outline-none appearance-none font-bold border-none cursor-pointer pr-10 transition-all ${error ? 'ring-2 ring-red-300' : ''}`}
+          className={`w-full px-4 py-4 rounded-xl bg-white/5 text-white outline-none appearance-none font-bold border border-white/10 cursor-pointer pr-10 transition-all focus:ring-2 focus:ring-amber-500/50 ${error ? 'ring-2 ring-red-500/50' : ''}`}
         >
-          {placeholder && <option value="" disabled hidden>{placeholder}</option>}
-          {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          {placeholder && <option value="" disabled hidden className="bg-slate-900">{placeholder}</option>}
+          {options.map(opt => <option key={opt} value={opt} className="bg-slate-900">{opt}</option>)}
         </select>
-        <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-indigo-400">
+        <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-amber-500">
           <i className={`fa-solid ${icon} text-xs`}></i>
         </div>
       </div>
@@ -131,60 +131,60 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
   );
 
   return (
-    <div className="w-full bg-white rounded-3xl overflow-hidden shadow-2xl border border-white/60">
+    <div className="w-full bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-white/10">
       <div className="p-8 md:p-10 space-y-8">
         <div>
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight">Check-in</h2>
+          <h2 className="text-3xl font-black text-white tracking-tight">Check-in</h2>
           <p className="text-slate-400 text-sm mt-1 font-medium italic">Your abundance journey starts here.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">First Name</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">First Name</label>
               <input
                 type="text"
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleChange}
                 placeholder="John"
-                className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-bold ${errors.firstName ? 'ring-2 ring-red-300' : ''}`}
+                className={`w-full px-4 py-4 rounded-xl bg-white/5 text-white outline-none focus:ring-2 focus:ring-amber-500/50 transition-all border border-white/10 font-bold placeholder:text-slate-600 ${errors.firstName ? 'ring-2 ring-red-500/50' : ''}`}
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Last Name</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Last Name</label>
               <input
                 type="text"
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleChange}
                 placeholder="Doe"
-                className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-bold ${errors.lastName ? 'ring-2 ring-red-300' : ''}`}
+                className={`w-full px-4 py-4 rounded-xl bg-white/5 text-white outline-none focus:ring-2 focus:ring-amber-500/50 transition-all border border-white/10 font-bold placeholder:text-slate-600 ${errors.lastName ? 'ring-2 ring-red-500/50' : ''}`}
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="hello@provider.com"
-                className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-bold ${errors.email ? 'ring-2 ring-red-300' : ''}`}
+                className={`w-full px-4 py-4 rounded-xl bg-white/5 text-white outline-none focus:ring-2 focus:ring-amber-500/50 transition-all border border-white/10 font-bold placeholder:text-slate-600 ${errors.email ? 'ring-2 ring-red-500/50' : ''}`}
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Phone</label>
               <input
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="080..."
-                className={`w-full px-4 py-4 rounded-xl bg-[#E8F0FE] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-300 transition-all border-none font-bold ${errors.phone ? 'ring-2 ring-red-300' : ''}`}
+                className={`w-full px-4 py-4 rounded-xl bg-white/5 text-white outline-none focus:ring-2 focus:ring-amber-500/50 transition-all border border-white/10 font-bold placeholder:text-slate-600 ${errors.phone ? 'ring-2 ring-red-500/50' : ''}`}
               />
             </div>
           </div>
@@ -230,17 +230,17 @@ const AttendanceForm: React.FC<Props> = ({ onSuccess }) => {
           </div>
 
           {submitError && (
-            <div className="flex items-center gap-3 bg-red-50 p-4 rounded-xl border border-red-100 animate-fade-in">
+            <div className="flex items-center gap-3 bg-red-500/10 p-4 rounded-xl border border-red-500/20 animate-fade-in">
               <i className="fa-solid fa-triangle-exclamation text-red-500"></i>
-              <p className="text-red-600 text-[10px] font-black uppercase tracking-widest">{submitError}</p>
+              <p className="text-red-400 text-[10px] font-black uppercase tracking-widest">{submitError}</p>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-6 rounded-2xl font-black text-white transition-all shadow-xl active:scale-95 text-base uppercase tracking-widest ${
-              loading ? 'bg-indigo-300 cursor-not-allowed' : 'bg-[#5C6BC0] hover:bg-[#4E5BA6] shadow-indigo-100 hover:shadow-indigo-200'
+            className={`w-full py-6 rounded-2xl font-black text-slate-900 transition-all shadow-xl active:scale-95 text-base uppercase tracking-widest ${
+              loading ? 'bg-amber-500/50 cursor-not-allowed' : 'bg-[#F59E0B] hover:bg-[#D97706] shadow-amber-500/20 hover:shadow-amber-500/40'
             }`}
           >
             {loading ? (
